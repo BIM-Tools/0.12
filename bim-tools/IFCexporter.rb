@@ -53,8 +53,8 @@ class IFCexporter
 		# IFC info
 		author = "Architect"
 		organization = "Building Designer Office"
-		preprocessor_version = "Sketchup Bim-tools testversion"
-		originating_system = "Sketchup Bim-tools testversion"
+	preprocessor_version = "SU2IFC01"
+	originating_system = "SU2IFC01"
 		authorization = "The authorising person"
 		project_id = random_string
 		project_name = @model.title
