@@ -79,7 +79,7 @@ module Brewsky
     require 'extensions.rb'
 
     bimtools = SketchupExtension.new "bim-tools", "bim-tools/bim-tools_loader.rb"
-    bimtools.version = '0.12.3'
+    bimtools.version = '0.12.4'
     bimtools.description = "Tools to create building parts and export these to IFC."
     Sketchup.register_extension bimtools, true
   end # module BimTools
