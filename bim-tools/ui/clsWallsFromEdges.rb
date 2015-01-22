@@ -39,9 +39,6 @@ module Brewsky
       #action to be started on webdialog form submit
       def callback
         @dialog.webdialog.add_action_callback(@name) {|dialog, params|
-          width = 300.mm
-          height = 2400.mm
-          offset = 150.mm
           selection = Sketchup.active_model.selection
           if selection.length > 0
             require "bim-tools/tools/walls_from_edges.rb"
@@ -96,11 +93,11 @@ module Brewsky
         sel = @dialog.selection
         html = "
               <label for='height'>Height:</label>
-              <input name='height' type='text' id='height' value='2400' />
+              <input name='height' type='text' id='height' value='" + Sketchup.format_length( 2600.mm ) + "' />
               <label for='width'>Width:</label>
-              <input name='width' type='text' id='width' value='300' />
+              <input name='width' type='text' id='width' value='" + Sketchup.format_length( 300.mm ) + "' />
               <label for='offset'>Offset:</label>
-              <input name='offset' type='text' id='offset' value='150' />
+              <input name='offset' type='text' id='offset' value='" + Sketchup.format_length( 150.mm ) + "' />
               "
         return html
       end

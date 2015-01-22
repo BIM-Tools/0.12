@@ -37,14 +37,14 @@ module Brewsky
         
         ## set width value
         #if @h_properties["width"]
-          #@width = @h_properties["width"].mm
+          #@width = @h_properties["width"]
         #else
           #@width = nil
         #end   
          
         ## set offset value
         #if @h_properties["offset"]
-          #@offset = @h_properties["offset"].mm
+          #@offset = @h_properties["offset"]
         #else
           #@offset = nil
         #end

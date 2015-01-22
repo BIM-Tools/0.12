@@ -28,7 +28,7 @@ module Brewsky
         else
           @h_properties = h_properties
         end
-        @height = @h_properties["height"]
+        @height = @h_properties["height"] #Units::convert_from_current_unit(@h_properties["height"])
         @width = @h_properties["width"]
         @offset = @h_properties["offset"]
         @a_planars = Array.new
@@ -41,12 +41,12 @@ module Brewsky
         
         # start undo section
         @model.start_operation("Create walls from edges", disable_ui=true) # Start of operation/undo section
-        
+
         # create source faces for the walls
         if @height.nil?
-          @height = 2400.mm
+          @height = 2600.mm
         else
-          @height = @height.mm
+          @height = @height
         end
         a_faces = Array.new
         @a_sources.each do |source|

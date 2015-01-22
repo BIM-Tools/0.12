@@ -39,9 +39,6 @@ module Brewsky
       #action to be started on webdialog form submit
       def callback
         @dialog.webdialog.add_action_callback(@name) {|dialog, params|
-          width = 300
-          height = 2400
-          offset = 150
           selection = Sketchup.active_model.selection
           if selection.length > 0
             require "bim-tools/tools/planars_from_faces.rb"
@@ -109,9 +106,9 @@ module Brewsky
         sel = @dialog.selection
         html = "
               <label for='width'>Thickness:</label>
-              <input name='width' type='text' id='width' value='300' />
+              <input name='width' type='text' id='width' value='" + Sketchup.format_length( 300.mm ) + "' />
               <label for='offset'>Offset:</label>
-              <input name='offset' type='text' id='offset' value='150' />
+              <input name='offset' type='text' id='offset' value='" + Sketchup.format_length( 150.mm ) + "' />
               "
         return html
       end

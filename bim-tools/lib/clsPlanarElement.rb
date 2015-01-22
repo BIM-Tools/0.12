@@ -46,12 +46,12 @@ module Brewsky
         if width.nil?
           @width = 300.mm
         else
-          @width = width.mm
+          @width = width
         end
         if offset.nil?
           @offset = 150.mm
         else
-          @offset = offset.mm
+          @offset = offset
         end
       
         init_type
@@ -534,7 +534,7 @@ module Brewsky
         return @width
       end
       def width=(width)
-        @width = width.mm
+        @width = width
         set_planes
       end
       def update_geometry
@@ -553,7 +553,7 @@ module Brewsky
         return @offset
       end
       def offset=(offset)
-        @offset = offset.mm
+        @offset = offset
         set_planes #???
       end
       
@@ -581,10 +581,9 @@ module Brewsky
               max = p.x
             end
           end
-          tot = max - min
-          length = tot.to_mm.mm
+          length = max - min
         end
-        return @length = length
+        return @length = length.to_l
       end
       
       # calculate the planar´s "height"  == size in y-direction
@@ -612,10 +611,9 @@ module Brewsky
               max = p.y
             end
           end
-          tot = max - min
-          height = tot.to_mm.mm
+          height = max - min
         end
-        return @height = height
+        return @height = height.to_l
       end
       
       # scale @source to match a new height and length
@@ -742,10 +740,10 @@ module Brewsky
       
       def properties=(h_Properties)
       
-        @width = h_Properties["width"].to_f.mm
-        @offset = h_Properties["offset"].to_f.mm
-        length_new = h_Properties["length"].to_f.mm
-        height_new = h_Properties["height"].to_f.mm
+        @width = h_Properties["width"]
+        @offset = h_Properties["offset"]
+        length_new = h_Properties["length"]
+        height_new = h_Properties["height"]
         #if length_new.nil?# || length_new == 0
         #  length_new = length?
         #end
@@ -759,7 +757,7 @@ module Brewsky
         #if length_new != length? || height_new != height?
         
           # scale_source to match new length
-          scale_source(h_Properties["length"].to_f.mm, h_Properties["height"].to_f.mm)
+          scale_source(h_Properties["length"].to_l, h_Properties["height"].to_l)
         end
         @element_type = h_Properties["element_type"]
         @name = h_Properties["name"]

@@ -94,12 +94,12 @@ module Brewsky
             offset_total = offset_total + entity.offset
           end
           if (width_total / bt_entities.length) == bt_entities[0].width
-            @width = bt_entities[0].width.to_s
+            @width = Sketchup.format_length( bt_entities[0].width )
           else
             @width = "..."
           end
           if (offset_total / bt_entities.length) == bt_entities[0].offset
-            @offset = bt_entities[0].offset.to_s
+            @offset = Sketchup.format_length( bt_entities[0].offset )
           else
             @offset = "..."
           end

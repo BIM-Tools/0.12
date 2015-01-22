@@ -149,7 +149,7 @@ module Brewsky
       end
       def extract_length(string)
         begin
-          length = string.to_l.to_mm
+          length = string.to_l
           if length
             return length
           end
