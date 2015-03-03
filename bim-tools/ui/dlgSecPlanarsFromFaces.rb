@@ -21,6 +21,12 @@ module Brewsky
 
     class ClsDlgSecPlanarsFromFaces < ClsDialogSection
       def initialize(dialog, id)
+        # load default values: This should be done once in a central place ?BtProject?
+        require 'bim-tools/lib/clsDefaultValues.rb'
+        @default = ClsDefaultValues.new
+        @width = @default.get("planar_width").to_l
+        @offset = @default.get("planar_offset").to_l
+        
         @dialog = dialog
         @id = id.to_s
         #@project = dialog.project
@@ -28,10 +34,6 @@ module Brewsky
         @name = "PlanarsFromFaces"
         @title = "Create thick faces"
         @buttontext = "Create thick faces"
-        @width = "-"
-        @offset = "-"
-        @volume = "-"
-        @guid = "-"
         @html_content = html_content
         callback
       end
@@ -106,9 +108,9 @@ module Brewsky
         sel = @dialog.selection
         html = "
               <label for='width'>Thickness:</label>
-              <input name='width' type='text' id='width' value='" + Sketchup.format_length( 300.mm ) + "' />
+              <input name='width' type='text' id='width' value='" + Sketchup.format_length( @width ) + "' />
               <label for='offset'>Offset:</label>
-              <input name='offset' type='text' id='offset' value='" + Sketchup.format_length( 150.mm ) + "' />
+              <input name='offset' type='text' id='offset' value='" + Sketchup.format_length( @offset ) + "' />
               "
         return html
       end

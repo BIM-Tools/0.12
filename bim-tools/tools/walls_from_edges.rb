@@ -18,19 +18,14 @@
 module Brewsky
   module BimTools
     class WallsFromEdges
-      def initialize(project, a_sources, h_properties=nil)
+      def initialize(project, a_sources, height, width, offset)
         @model = Sketchup.active_model
         @entities = @model.active_entities
         @project = project
         @a_sources = a_sources
-        if h_properties.nil?
-          @h_properties = Hash.new
-        else
-          @h_properties = h_properties
-        end
-        @height = @h_properties["height"] #Units::convert_from_current_unit(@h_properties["height"])
-        @width = @h_properties["width"]
-        @offset = @h_properties["offset"]
+        @height = height
+        @width = width
+        @offset = offset
         @a_planars = Array.new
       end
       def activate
@@ -43,11 +38,6 @@ module Brewsky
         @model.start_operation("Create walls from edges", disable_ui=true) # Start of operation/undo section
 
         # create source faces for the walls
-        if @height.nil?
-          @height = 2600.mm
-        else
-          @height = @height
-        end
         a_faces = Array.new
         @a_sources.each do |source|
         

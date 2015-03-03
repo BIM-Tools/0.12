@@ -25,6 +25,10 @@ module Brewsky
     class ClsPlanarElement < ClsBuildingElement
       attr_reader :element_type, :openings
       def initialize(project, face, width=nil, offset=nil, guid=nil) # profilecomponent=width, offset
+      
+        # load default values: This should be done once in a central place ?BtProject?
+        require 'bim-tools/lib/clsDefaultValues.rb'
+        @default = ClsDefaultValues.new
         
         puts self.to_s + ":initialize"
         
@@ -44,12 +48,12 @@ module Brewsky
         @length
         @height
         if width.nil?
-          @width = 300.mm
+          @width = @default.get("planar_width").to_l
         else
           @width = width
         end
         if offset.nil?
-          @offset = 150.mm
+          @offset = @default.get("planar_offset").to_l
         else
           @offset = offset
         end

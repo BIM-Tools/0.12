@@ -15,12 +15,22 @@
 #       You should have received a copy of the GNU General Public License
 #       along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+
+
 module Brewsky
   module BimTools
     require 'bim-tools/ui/clsDialogSection.rb'
     
     class ClsWallsFromEdges < ClsDialogSection
       def initialize(dialog, id)
+        # load default values: This should be done once in a central place ?BtProject?
+        require 'bim-tools/lib/clsDefaultValues.rb'
+        @default = ClsDefaultValues.new
+        @width = @default.get("wall_width").to_l
+        @offset = @default.get("wall_offset").to_l
+        @height = @default.get("wall_height").to_l
+        
         @dialog = dialog
         @id = id.to_s
         #@project = dialog.project
@@ -28,10 +38,6 @@ module Brewsky
         @name = "WallsFromEdges"
         @title = "Create walls from edges"
         @buttontext = "Create walls from edges"
-        @width = "-"
-        @offset = "-"
-        @volume = "-"
-        @guid = "-"
         @html_content = html_content
         callback
       end
@@ -41,15 +47,15 @@ module Brewsky
         @dialog.webdialog.add_action_callback(@name) {|dialog, params|
           selection = Sketchup.active_model.selection
           if selection.length > 0
+          
+            # construct wall objects
             require "bim-tools/tools/walls_from_edges.rb"
-    
-            #split string into separate values
-            a_form_data = split_string(params)
             
-            # validate data from html form
-            h_Properties = extract_data(a_form_data)
-    
-            walls_from_edges = WallsFromEdges.new(@dialog.project, selection, h_Properties)
+            height = dialog.get_element_value("height").to_l
+            width = dialog.get_element_value("width").to_l
+            offset = dialog.get_element_value("offset").to_l
+            
+            walls_from_edges = WallsFromEdges.new(@dialog.project, selection, height, width, offset)
             
             # the tool is not started from a toolbar so it needs to be activated.
             bt_entities = walls_from_edges.activate
@@ -91,13 +97,18 @@ module Brewsky
     
       def html_properties_editable
         sel = @dialog.selection
+        
+        fheight = Sketchup.format_length( @height ).gsub("'"){"&apos;"}
+        fwidth = Sketchup.format_length( @width ).gsub("'"){"&apos;"}
+        foffset = Sketchup.format_length( @offset ).gsub("'"){"&apos;"}
+        
         html = "
               <label for='height'>Height:</label>
-              <input name='height' type='text' id='height' value='" + Sketchup.format_length( 2600.mm ) + "' />
+              <input name='height' type='text' id='height' value='" + fheight + "' />
               <label for='width'>Width:</label>
-              <input name='width' type='text' id='width' value='" + Sketchup.format_length( 300.mm ) + "' />
+              <input name='width' type='text' id='width' value='" + fwidth + "' />
               <label for='offset'>Offset:</label>
-              <input name='offset' type='text' id='offset' value='" + Sketchup.format_length( 150.mm ) + "' />
+              <input name='offset' type='text' id='offset' value='" + foffset + "' />
               "
         return html
       end

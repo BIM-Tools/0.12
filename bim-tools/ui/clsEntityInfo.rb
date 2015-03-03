@@ -39,14 +39,15 @@ module Brewsky
       #action to be started on webdialog form submit
       def callback
         @dialog.webdialog.add_action_callback(@name) {|dialog, params|
-          width = "-"
-          offset = "-"
-    
-          #split string into separate values
-          a_form_data = split_string(params)
           
-          # validate data from html form
-          h_Properties = extract_data(a_form_data)
+          h_Properties = Hash.new()
+          
+          h_Properties["height"] = dialog.get_element_value("height").to_l
+          h_Properties["width"] = dialog.get_element_value("width").to_l
+          h_Properties["offset"] = dialog.get_element_value("offset").to_l
+          h_Properties["element_type"] = dialog.get_element_value("element_type")
+          h_Properties["name"] = dialog.get_element_value("name")
+          h_Properties["description"] = dialog.get_element_value("description")
           
           bt_entities = @dialog.selection.btEntities?
     
