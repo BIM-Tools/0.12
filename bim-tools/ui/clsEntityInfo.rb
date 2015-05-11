@@ -82,10 +82,10 @@ module Brewsky
         # pas de waarde voor breedte aan!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # zoek in selectie of het een bt-object is, als dat zo is, pas de breedte daar op aan
         bt_entities = @dialog.project.library.array_remove_non_bt_entities(@dialog.project, entities)
-    
+        
         if bt_entities[0] != nil
           if bt_entities.length == 1
-            @volume = bt_entities[0].volume? + " Millimeters ³"
+            #@volume = bt_entities[0].volume? + " Millimeters ³"
             @guid = bt_entities[0].guid?
           end
           width_total = 0

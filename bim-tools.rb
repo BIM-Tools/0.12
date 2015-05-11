@@ -1,6 +1,6 @@
 #       bim-tools.rb
 #       
-#       Copyright (C) 2014 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2015 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -70,14 +70,23 @@
 # 120311 tested webdialog on IE8, works fine, shows min/max-image, but content width is a bit off...
 # webdialog show_modal for mac
 
+require 'sketchup.rb'
+require 'extensions.rb'
+
 module Brewsky
+  PLUGIN_ROOT_PATH = File.dirname(__FILE__) unless defined? PLUGIN_ROOT_PATH
+  AUTHOR_PATH = File.join(PLUGIN_ROOT_PATH, 'Brewsky') unless defined? AUTHOR_PATH
+  
   module BimTools
+    
+    # Resource paths
+    PATH  = File.join(PLUGIN_ROOT_PATH, 'bim-tools') # must be moved to author path
+    TOOLS = File.join(PATH, 'tools')
+    PATH_IMAGE = File.join(PATH, 'images')
+    PATH_CSS = File.join(PATH, 'css')
+    PATH_LIB = File.join(PATH, 'lib')
 
-    # Create an entry in the Extension list that loads a script called
-    # bim-tools.rb.
-    require 'sketchup.rb'
-    require 'extensions.rb'
-
+    # Create Extension
     bimtools = SketchupExtension.new "bim-tools", "bim-tools/bim-tools_loader.rb"
     bimtools.version = '0.12.4'
     bimtools.description = "Tools to create building parts and export these to IFC."

@@ -88,6 +88,7 @@ module Brewsky
     
       def add_planars
         @h_guid_list.each do |guid|
+          
           # if no lost geometry, check if bt-entity exists with deleted source
           if guid[1][1].nil?
             unless guid[1][0].nil?
@@ -108,20 +109,24 @@ module Brewsky
             end
           else
             unless guid[1][0].nil? || guid[1][1].nil?
-              require "bim-tools/lib/clsPlanarElement.rb"
-              width = guid[1][1].get_attribute "ifc", "width"
-              width = width.to_l
-              offset = guid[1][1].get_attribute "ifc", "offset"
-              offset = offset.to_l
-              planar = ClsPlanarElement.new(@project, guid[1][0], width, offset, guid[0])
-              planar.geometry=(guid[1][1])
-              #planar.width= width.to_l
-              #planar.offset= offset.to_l
-              planar.name= guid[1][1].get_attribute "ifc", "name"
-              planar.description= guid[1][1].get_attribute "ifc", "description"
-              planar.element_type= guid[1][1].get_attribute "ifc", "type"
-              output = planar.get_openings
-              output[1].erase!
+          
+              # create only planar objects(faces), skip edges
+              ### ??? what happens if a guid is copied to an edge by cutting
+              ### a face and this is the first entity found???
+              if guid[1][0].is_a? Sketchup::Face
+                require "bim-tools/lib/clsPlanarElement.rb"
+                width = guid[1][1].get_attribute "ifc", "width"
+                width = width.to_f.to_l
+                offset = guid[1][1].get_attribute "ifc", "offset"
+                offset = offset.to_f.to_l
+                planar = ClsPlanarElement.new(@project, guid[1][0], width, offset, guid[0])
+                planar.geometry=(guid[1][1])
+                planar.name= guid[1][1].get_attribute "ifc", "name"
+                planar.description= guid[1][1].get_attribute "ifc", "description"
+                planar.element_type= guid[1][1].get_attribute "ifc", "type"
+                output = planar.get_openings
+                output[1].erase!
+              end
             end
           end
         end

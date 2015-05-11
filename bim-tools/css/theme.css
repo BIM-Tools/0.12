@@ -1,0 +1,43 @@
+
+
+
+/*******************************************************************************
+ *
+ * $BUTTON
+ *
+ ******************************************************************************/
+
+/* undo button padding for the embedded image */
+.control-button img
+{
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+
+fieldset { 
+  position:relative;
+  height: 200px;
+  margin: 0;
+  padding: 0.5em;
+  border-width: 0;
+  border-top: 1px solid #a0a0a0;
+}
+legend
+{
+    top:5px;
+    left:28px;
+    position:absolute;
+    font-weight:bold;
+}
+input[readonly] { 
+    background-color: transparent;
+}
+.icon {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  border-width: 0;
+  top:0;
+  left:0;
+}

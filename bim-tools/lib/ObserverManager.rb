@@ -61,8 +61,11 @@ module Brewsky
       # ??? should it delete, or only detach the observer ???
       def self.remove(observer)
         observed = @observerList[observer]
-        observed.remove_observer observer
+        
+        puts observed.methods
+        observed.remove_observer observer #if observed#unless observed.deleted
         @observerList.delete(observer)
+
       end
       
       # this method will load(add to "observed_object") all BIM-Tools observers
@@ -154,12 +157,12 @@ module Brewsky
              #puts "entities observer <> active ent + reattached"
           
           end
-        else
-          unless @entities_observer.nil?
-            self.remove(@entities_observer)
-          # else
-          #   puts "no entities observer created, no bt_entities present"
-          end
+        #else
+        #  unless @entities_observer.nil?
+        #    self.remove(@entities_observer)
+        #   else
+        #     puts "no entities observer created, no bt_entities present"
+        #  end
         end
       end
       
@@ -187,6 +190,8 @@ module Brewsky
         attr_reader :observed
         def initialize(project)#bt_dialog, h_sections)
           @project = project
+          puts project
+          puts self
           @bimTools = Brewsky::BimTools
           @observed = Sketchup.active_model.active_entities
         end
@@ -199,6 +204,10 @@ module Brewsky
         def selection_changed(selection)
           unless @bimTools.btDialog.nil?
             @bimTools.btDialog.update_sections(selection)
+          end
+          
+          if Menu.window.visible?
+            Menu.update
           end
           
           # ??? This should only be fired when the selection in the ACTIVE collection is changed ???
@@ -236,9 +245,9 @@ module Brewsky
         
         # what to do if element is changed, and check if part of BtEntity.
         def onElementModified(entities, entity)
+
           unless entity.deleted?
-            @model = Sketchup.active_model
-            @model.start_operation("Update BIM-Tools entities", disable_ui=true) # Start of operation/undo section
+
             if entity.is_a?(Sketchup::Face)
             
               # check if entity is part of a building element
@@ -291,8 +300,7 @@ module Brewsky
                 end
               end
             end
-            @model.commit_operation # End of operation/undo section
-            @model.active_view.refresh # Refresh model
+        
           end
         end
       end

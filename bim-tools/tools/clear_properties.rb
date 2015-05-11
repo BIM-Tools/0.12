@@ -15,15 +15,51 @@
 #       You should have received a copy of the GNU General Public License
 #       along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Remove BIM properties from selection
+
 module Brewsky
-  module BimTools
+ module BimTools
+  module ClearProperties
+    extend self
+    attr_accessor :name, :small_icon, :large_icon
+    
+    @name = 'Clear properties'
+    @description = 'Remove BIM properties from selection'
+    @small_icon = File.join( PATH_IMAGE, 'clear_small.png' )
+    @large_icon = File.join( PATH_IMAGE, 'clear_large.png' )
+    
+    # Tool
+    tool = Proc.new {
+      selection = Sketchup.active_model.selection
+      ClearProperties.new(BimTools.active_BtProject, selection)
+    }
+    
+    # add to TOOLBAR
+    
+    cmd = UI::Command.new(@description) { tool.call }
+    cmd.small_icon = File.join( @small_icon )
+    cmd.large_icon = File.join( @large_icon )
+    cmd.tooltip = 'Remove BIM properties'
+    cmd.status_bar_text = 'Remove BIM properties from selection'
+    BimTools.toolbar.add_item cmd
+
+    # add to menu-icons
+    BimTools::Menu.add_icon( @large_icon, @description ) { |c, image|
+      
+      # tool
+      tool.call
+      
+    }
+
+    
+    # add to OBSERVERS
+          
 
     # Function that takes an array of SketchUp elements as input, deletes all BIM properties for these elements,
     # and makes the source geometry visible and selected.
     #   parameters: array of SketchUp elements
     #   returns: array of SketchUp faces
     
-    #module Bt_create
     class ClearProperties
       def initialize(project, entities)
         @project = project
@@ -59,9 +95,14 @@ module Brewsky
 						@model.commit_operation # End of operation/undo section
 						@model.active_view.refresh # Refresh model
 						@model.select_tool(nil)
+            
+            ### Select source faces of deleted entities ###
+            
+            
           end
         end
       end
     end
-  end # module BimTools
+  end # module ClearProperties
+ end # module BimTools
 end # module Brewsky

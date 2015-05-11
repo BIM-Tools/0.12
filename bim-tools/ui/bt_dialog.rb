@@ -103,7 +103,7 @@ module Brewsky
         refresh
       end
       def show
-        MAC ? @dialog.show_modal() : @dialog.show()
+        PLATFORM_IS_OSX ? @dialog.show_modal() : @dialog.show()
         # return nil
       end
       def refresh

@@ -89,6 +89,9 @@ module Brewsky
         # Create the selection observer to the new model, to keep the dialog up-to-date
         Brewsky::BimTools::ObserverManager.add_selection_observer(@project)
         
+        # Add project to projects list
+        Brewsky::BimTools.projects[@model] = self
+        
         return self
       end
       
@@ -311,19 +314,11 @@ module Brewsky
                 bt_entity.source= face #maybee find the best face?
                 bt_entity.update_geometry
               else
-                #@lib.duplicate_bt_entity(bt_entity, face)
-                #require "bim-tools/lib/clsPlanarElement.rb"
-                #planar = ClsPlanarElement.new(self, face)
-                #planar.set_geometry
                 props = bt_entity.properties_editable
-          #props.each {|key, value| puts "#{key} is #{value}" }
                 require "bim-tools/lib/clsPlanarElement.rb"
-                planar = ClsPlanarElement.new(self, face)
-                planar.set_properties(props)
+                planar = ClsPlanarElement.new(self, face, bt_entity.width, bt_entity.offset)
                 planar.set_geometry
-                #@lib.entities do |ent|
-                #  puts ent.width
-                #end
+                bt_entity.set_geometry
               end
             end
           end
@@ -371,6 +366,14 @@ module Brewsky
           @a_entities << bt_entity
           @delay = UI.start_timer( 0.001, false ) {
             UI.stop_timer( @delay )
+
+            # temporarily turn off observers to prevent creating geometry multiple times
+            Brewsky::BimTools::ObserverManager.toggle
+            
+            
+            @model = Sketchup.active_model
+            @model.start_operation("Update BIM-Tools entities", disable_ui=true) # Start of operation/undo section
+            
             @a_con_entities = Array.new
             @a_entities.uniq!
             
@@ -429,6 +432,12 @@ module Brewsky
             
             # clear array
 						@a_entities = Array.new
+            
+            @model.commit_operation # End of operation/undo section
+            @model.active_view.refresh # Refresh model
+            
+            # switch observers back on
+            Brewsky::BimTools::ObserverManager.toggle
             
           }
         end

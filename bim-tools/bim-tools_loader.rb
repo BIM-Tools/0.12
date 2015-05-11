@@ -1,6 +1,6 @@
 #       bim-tools_loader.rb
 #       
-#       Copyright (C) 2013 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2015 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -16,41 +16,43 @@
 #       along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 module Brewsky
-  module BimTools
-    extend self
-    attr_accessor :aBtProjects, :btDialog
-    
-    MAC = ( Object::RUBY_PLATFORM =~ /(darwin)/i ? true : false )
-    OSX = MAC unless defined?(OSX)
-    WIN = ( not MAC ) unless defined?(WIN)
-    PC = WIN unless defined?(PC)
-    
-    @aBtProjects = Array.new
-    
-    require 'bim-tools/clsBtProject.rb'
-    require 'bim-tools/ui/clsBtUi.rb'
-    require 'bim-tools/lib/ObserverManager.rb'
-    
-    def active_BtProject
-      @aBtProjects.each do |btProject|
-        if btProject.model == Sketchup.active_model
-          return btProject
-        end
-      end
+ module BimTools
+  extend self
+  attr_accessor :projects, :toolbar, :btDialog
+  
+  PLATFORM_IS_OSX     = ( Object::RUBY_PLATFORM =~ /darwin/i ) ? true : false
+  PLATFORM_IS_WINDOWS = !PLATFORM_IS_OSX
+  
+  require File.join( PATH, 'clsBtProject.rb' )
+  require File.join( PATH, 'menu.rb' )
+  require File.join( PATH, 'ui', 'bt_dialog.rb' )
+  require File.join( PATH, 'lib', 'ObserverManager.rb' )
+  
+  # create projects list
+  @projects = Hash.new
+  
+  # create BIM-Tools toolbar
+  @toolbar = UI::Toolbar.new "BIM-Tools"
+  @toolbar.show # needed???
+  
+  # create BimTools project for initial active model
+  ClsBtProject.new
+  
+  def active_BtProject # does active project have to be re-calculated all the time?
+    @projects.each_value do |project|
+      return project if project.model == Sketchup.active_model
     end
-    def new_BtProject
-      btProject = ClsBtProject.new
-      @aBtProjects << btProject
-    end
-
-    new_BtProject
-    
-    # start all UI elements: webdialog (?toolbar?)
-    btUi = ClsBtUi.new(self)
-    
-    # create access point to webdialog manager
-    @btDialog = btUi.btDialog
-    
-
-  end # module BimTools
+  end
+  def new_BtProject
+    ClsBtProject.new # Closed SketchUp models must also be removed from projects!
+  end
+  
+  # create the webdialog manager
+  @btDialog = Bt_dialog.new(self)
+  
+  # load all available tools
+  Dir[TOOLS + '/*.rb'].each {|file| require file }
+  Brewsky::BimTools::Menu.position_sections # This needs to change, probably better not to load automatically...
+  
+ end # module BimTools
 end # module Brewsky

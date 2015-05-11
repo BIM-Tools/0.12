@@ -16,7 +16,39 @@
 #       along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 module Brewsky
-  module BimTools
+ module BimTools
+  module ToggleGeometry
+    extend self
+    attr_accessor :name, :small_icon, :large_icon
+    
+    @name = 'Create thick faces'
+    @description = 'Toggle between sources and geometry'
+    @small_icon = File.join( PATH_IMAGE, 'ToggleGeometry_small.png' )
+    @large_icon = File.join( PATH_IMAGE, 'ToggleGeometry_large.png' )
+    
+    # Tool
+    tool = Proc.new {
+      toggle_geometry = ToggleGeometry.new(BimTools.active_BtProject)
+      Sketchup.active_model.select_tool(toggle_geometry)
+    }
+    
+    # add to TOOLBAR
+    cmd = UI::Command.new(@description) { tool.call }
+    cmd.small_icon = File.join( @small_icon )
+    cmd.large_icon = File.join( @large_icon )
+    cmd.tooltip = 'Toggle between sources and geometry'
+    cmd.status_bar_text = 'Toggle between sources and geometry'
+    BimTools.toolbar.add_item cmd
+
+    # add to menu-icons
+    BimTools::Menu.add_icon( @large_icon, @description ) { |c, image|
+      
+      # tool
+      tool.call
+      
+    }
+    
+    # add to OBSERVERS
 
     # Function that switches the visibility(hidden-status) between source faces and geometry.
     #   parameters: current bim-tools project
@@ -30,7 +62,6 @@ module Brewsky
       def activate
 				
 				# temporarily turn off observers to prevent creating geometry multiple times
-        #t = Time.new
 				Brewsky::BimTools::ObserverManager.toggle
 				
         # start undo section
@@ -53,10 +84,10 @@ module Brewsky
         
 				# switch observers back on
 				Brewsky::BimTools::ObserverManager.toggle
-        #puts Time.new - t
         
         @model.select_tool(nil)
       end
     end # class ToggleGeometry
-  end # module BimTools
+  end # module ToggleGeometry
+ end # module BimTools
 end # module Brewsky

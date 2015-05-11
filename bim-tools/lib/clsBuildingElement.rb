@@ -39,6 +39,10 @@ module Brewsky
       
       # if source object is unrecoverable, self_destruct bt_entity
       def self_destruct
+        
+        # get connecting entities for updating geometry after deletion
+        edges = self.source.edges # works only for face!
+        
         @deleted = true
         unless @source.deleted?
           source.hidden= false
@@ -52,6 +56,20 @@ module Brewsky
         
         # remobe bt_entity from library
         @project.library.entities.delete(self)
+        
+        # update connecting geometry after deletion
+        a_connecting_faces = Array.new # Array to hold al connecting faces
+        edges.each do |edge|
+          unless edge.deleted?
+            edge.faces.each do |face|
+              # add only bt-source-faces to array, bt-entities must not react to "normal" faces
+              if @project.library.source_to_bt_entity(@project, face)
+                a_connecting_faces << @project.library.source_to_bt_entity(@project, face) # shorter??????
+              end
+            end
+          end
+        end
+        @project.bt_entities_set_geometry(a_connecting_faces)
         
         # check if the entities observer needs to be removed
         active_entities = Sketchup.active_model.active_entities
@@ -86,7 +104,7 @@ module Brewsky
         if @geometry.deleted?
           set_geometry
         end
-        return (@geometry.volume* (25.4 **3)).to_s
+        return @geometry.volume
       end
       
       # returns the guid of the bt_element

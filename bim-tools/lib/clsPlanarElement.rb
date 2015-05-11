@@ -30,10 +30,15 @@ module Brewsky
         require 'bim-tools/lib/clsDefaultValues.rb'
         @default = ClsDefaultValues.new
         
-        puts self.to_s + ":initialize"
-        
         @project = project
-        @source = face
+        
+        # check if there is a valid source face
+        if face.is_a? Sketchup::Face
+          @source = face
+        else
+          raise "No valid source face given"
+        end
+        
         @deleted = false
         @source_hidden = @project.visible_geometry? # for function in ClsBuildingElement
         @geometry
@@ -47,6 +52,7 @@ module Brewsky
         @guid = guid
         @length
         @height
+        
         if width.nil?
           @width = @default.get("planar_width").to_l
         else
@@ -100,8 +106,6 @@ module Brewsky
       
       # create the geometry for the planar element
       def set_geometry
-      
-        puts self.to_s + ":set_geometry"
       
         entities = Sketchup.active_model.active_entities
         self.check_source
@@ -390,8 +394,9 @@ module Brewsky
                 end
               rescue
                 puts "error: failed to create face"
+                self.self_destruct
               end
-    
+
               i += 1
             end
             
@@ -538,13 +543,11 @@ module Brewsky
         return @width
       end
       def width=(width)
-        @width = width
+        @width = width.to_l
         set_planes
       end
+      alias :thickness= :width=
       def update_geometry
-      
-        #puts self.to_s + ":update_geometry"
-        
         set_planes
         set_geometry
         define_length
@@ -557,8 +560,28 @@ module Brewsky
         return @offset
       end
       def offset=(offset)
-        @offset = offset
+        @offset = offset.to_l
         set_planes #???
+      end
+      def name=(name)
+        @name = name
+      end
+      def description=(description)
+        @description = description
+      end
+      def length=(length)
+        
+        # scale_source to match new length
+        scale_source(length.to_l, height?)
+        
+        #set_planes
+      end
+      def height=(height)
+        
+        # scale_source to match new height
+        scale_source(length?, height.to_l)
+        
+        #set_planes
       end
       
       # calculate the planar´s "length" == size in x-direction
@@ -731,14 +754,14 @@ module Brewsky
         end
       
         h_Properties = Hash.new
-        h_Properties["width"] = @width
-        h_Properties["offset"] = @offset
-        h_Properties["length"] = length?
-        h_Properties["height"] = height?
-        h_Properties["element_type"] = a_types
-        # h_Properties["layer"] = a_layers
-        h_Properties["name"] = @name
-        h_Properties["description"] = @description
+        h_Properties[:thickness] = @width
+        h_Properties[:offset] = @offset
+        h_Properties[:length] = length?
+        h_Properties[:height] = height?
+        h_Properties[:type] = a_types
+        #h_Properties[:layer] = a_layers
+        h_Properties[:name] = @name
+        h_Properties[:description] = @description
         return h_Properties
       end
       
@@ -770,17 +793,11 @@ module Brewsky
         #update_geometry
       end
       
-      #same as previous, but without mm conversion
-      def set_properties(h_Properties)
-        @width = h_Properties["width"]
-        @offset = h_Properties["offset"]
-        @element_type = h_Properties["element_type"]
-        @name = h_Properties["name"]
-        @description = h_Properties["description"]
-        set_planes
-        #update_geometry
+      def set_type(value)
+        if possible_types.include? value
+          @element_type = value
+        end
       end
-      
       
       # the element_type based on the initial source state
       def init_type
@@ -799,10 +816,10 @@ module Brewsky
         unless @geometry.nil?
           @geometry.set_attribute "ifc", "guid", guid?
           @geometry.set_attribute "ifc", "type", element_type?
-          @geometry.set_attribute "ifc", "length", length?.to_s
-          @geometry.set_attribute "ifc", "height", height?.to_s
-          @geometry.set_attribute "ifc", "width", @width.to_s #needs to be in planarelement class
-          @geometry.set_attribute "ifc", "offset", @offset.to_s #needs to be in planarelement class
+          @geometry.set_attribute "ifc", "length", length?.to_f.to_s # store values as floats! http://www.thomthom.net/thoughts/2012/08/dealing-with-units-in-sketchup/
+          @geometry.set_attribute "ifc", "height", height?.to_f.to_s
+          @geometry.set_attribute "ifc", "width", @width.to_f.to_s #needs to be in planarelement class
+          @geometry.set_attribute "ifc", "offset", @offset.to_f.to_s #needs to be in planarelement class
           @geometry.set_attribute "ifc", "description", description?.to_s
           @geometry.set_attribute "ifc", "name", name?.to_s
         end
@@ -832,12 +849,6 @@ module Brewsky
           ######################
           #BEWARE OF NESTED COMPONENTS!
           edges = @source.outer_loop.edges
-          
-          #puts edges.length == 4
-          #puts edges[0].line[1].parallel? edges[2].line[1]
-          #puts edges[1].line[1].parallel? edges[3].line[1]
-          #puts edges[0].line[1].perpendicular? edges[1].line[1]
-          #puts approx(@source.normal.z, 0)
           
           if edges.length == 4 and edges[0].line[1].parallel? edges[2].line[1] and edges[1].line[1].parallel? edges[3].line[1] and edges[0].line[1].perpendicular? edges[1].line[1] and approx(@source.normal.z, 0)
             IfcWallStandardCase.new(@project, exporter, self)
