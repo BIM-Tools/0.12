@@ -394,7 +394,7 @@ module Brewsky
                 end
               rescue
                 puts "error: failed to create face"
-                self.self_destruct
+                self.self_destruct # ??? self destruct should be the end of the method, face_top pot
               end
 
               i += 1
@@ -801,16 +801,13 @@ module Brewsky
       
       # the element_type based on the initial source state
       def init_type
-        if source.normal.z == 0
-          @element_type = "Wall"
-        elsif source.normal.z == 1
-          @element_type = "Floor"
-        elsif source.normal.z == -1
-          @element_type = "Floor"
-        else
-          @element_type = "Roof"
+        @element_type = case source.normal.z
+           when 0 then "Wall"
+           when 1, -1 then "Floor"
+           else "Roof"
         end
       end  
+      
       # write planar attributes to geometry object
       def set_attributes
         unless @geometry.nil?
@@ -822,6 +819,21 @@ module Brewsky
           @geometry.set_attribute "ifc", "offset", @offset.to_f.to_s #needs to be in planarelement class
           @geometry.set_attribute "ifc", "description", description?.to_s
           @geometry.set_attribute "ifc", "name", name?.to_s
+          
+          # Try to write type as a ifc classification
+          if Sketchup.version_number > 14000000
+            if (Sketchup.is_pro?)
+            
+              # get matching ifc type
+              ifc_type = case @element_type
+                 when "Wall" then "IfcWall"
+                 when "Floor" then "IfcSlab"
+                 when "Roof" then "IfcSlab"
+                 else nil
+              end
+              @geometry.definition.add_classification("IFC 2x3", ifc_type) unless ifc_type.nil?
+            end
+          end
         end
         unless @source.nil?
           @source.set_attribute "ifc", "guid", guid?
