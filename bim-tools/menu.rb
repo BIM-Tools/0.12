@@ -16,12 +16,12 @@
 #       along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 module Brewsky
-
- SKUI_PATH = File.join( PATH_LIB, 'SKUI' )
- load File.join( SKUI_PATH, 'embed_skui.rb' )
- ::SKUI.embed_in( self )
-
  module BimTools
+
+  SKUI_PATH = File.join( PATH_LIB, 'SKUI' )
+  load File.join( SKUI_PATH, 'embed_skui.rb' )
+  ::SKUI.embed_in( self )
+
   module Menu
     extend self
     attr_accessor :window
@@ -40,7 +40,7 @@ module Brewsky
       :theme           => File.join( PATH_CSS, 'theme.css' ).freeze
     }
 
-    @window = Brewsky::SKUI::Window.new( options )
+    @window = SKUI::Window.new( options )
     @window.add_script(File.join( PATH, 'js', 'bim-tools.js' ))
     
 
@@ -165,7 +165,7 @@ module Brewsky
         @closed = true
         @tool = tool
         
-        @groupbox = Brewsky::SKUI::Groupbox.new( @tool.name )
+        @groupbox = SKUI::Groupbox.new( @tool.name )
         @groupbox.position( 2, 2 )
         @groupbox.right = 2
         @groupbox.height = @height

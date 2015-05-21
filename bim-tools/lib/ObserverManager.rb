@@ -61,11 +61,8 @@ module Brewsky
       # ??? should it delete, or only detach the observer ???
       def self.remove(observer)
         observed = @observerList[observer]
-        
-        puts observed.methods
         observed.remove_observer observer #if observed#unless observed.deleted
         @observerList.delete(observer)
-
       end
       
       # this method will load(add to "observed_object") all BIM-Tools observers
@@ -128,17 +125,13 @@ module Brewsky
         # entities observer should only be created when the active collection contains BT-entities
         bt_entities = btProject.library.array_remove_non_bt_entities(btProject, active_entities)
         unless bt_entities.length == 0
-          #puts @entities_observer
           
           # check if an entities observer exists, if so, check if attached to the right entities object
           # if not, create and or attach an entities observer
           if @entities_observer.nil?
-             #puts "entities observer == nil"
             @entities_observer = BtEntitiesObserver.new(btProject, active_entities)
             self.add(@entities_observer, active_entities)
-            # puts "entities observer created"
           elsif active_entities == @observerList[@entities_observer]
-             #puts "entities observer == active ent"
             #self.add(@entities_observer, active_entities)
             unless btProject == @entities_observer.project
               @entities_observer.project = btProject
@@ -190,8 +183,6 @@ module Brewsky
         attr_reader :observed
         def initialize(project)#bt_dialog, h_sections)
           @project = project
-          puts project
-          puts self
           @bimTools = Brewsky::BimTools
           @observed = Sketchup.active_model.active_entities
         end

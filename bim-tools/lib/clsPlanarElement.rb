@@ -251,15 +251,10 @@ module Brewsky
                   plane_vector = normal.cross line_vector # unit vector voor plane
                   plane = [point, plane_vector]
                 else
-                  #vector1 = a_connecting_faces[0].normal + @source.normal # tel de normal-vectoren van de aansluitende vlakken bij elkaar op, dit geeft een vector met de helft van de hoek.
-                  #vector2 = line_vector
-                  #plane_vector = vector1.cross line_vector
-                  ## alternatieve methode die rekening houdt met de dikte van de planar:
                   a_connecting_faces[0]
                   connecting_entity = find_bt_entity_for_face(a_connecting_faces[0])
                   bottom_line = Geom.intersect_plane_plane(self.planes[0], connecting_entity.planes[0])
                   top_line = Geom.intersect_plane_plane(self.planes[1], connecting_entity.planes[1])
-                  ## line = [point3d, vector3d]
                   point1 = bottom_line[0]
                   point2 = bottom_line[0] + bottom_line[1]
                   point3 = top_line[0]
@@ -273,7 +268,7 @@ module Brewsky
               
               #bekijk of de 
               if edge.line[1].parallel? prev_edge.line[1] # what if the vectors are on the same line but facing each other?
-                perp_plane = [prev_edge.start.position, prev_edge.line[1]]
+                perp_plane = [edge.start.position, prev_edge.line[1]]
                 aPlanesVert << perp_plane
               end
               prev_edge = edge
@@ -301,7 +296,12 @@ module Brewsky
           
           aLoopsVertPlanes.each do |aPlanes|#aPlanesVert|
             
+            # get the array of planes
             aPlanesVert = aPlanes[0]
+            
+            # get the corresponding array with plane softness
+            # "hard" = 0
+            # soft = 1
             aPlanesSoft = aPlanes[1]
             
             # collect the needed points for the top and bottom faces in an array
@@ -323,21 +323,6 @@ module Brewsky
                 plane1 = aPlanesVert[i-1]
               end
               
-              
-              
-              
-              
-              
-              # bug fix:
-              # bepaal endpoint van 1 van de edges op het snijvlak.
-              # bepaal het vlak door dit punt, haaks op de edge
-              # gebruik dit vlak om de snijpunten te berekenen
-              
-              
-              
-              
-              
-              
               # if both planes are parallel then there is no intersection between planes
               line_start = Geom.intersect_plane_plane(plane1, plane)
               
@@ -355,6 +340,7 @@ module Brewsky
               pts[2] = Geom.intersect_line_plane(line_end, self.planes[1])
               pts[3] = Geom.intersect_line_plane(line_end, self.planes[0])
               
+              
               #if nOuterLoopNum == nLoopCount
               unless aFacePtsTop.last == pts[0]
                 aFacePtsTop << pts[0]
@@ -363,12 +349,24 @@ module Brewsky
                 aFacePtsBottom << pts[1]
               end
               #end
-    
-              #door het extra tussen gevoegde vlak ontstaan dubbele punten?
               
-              # when a face has duplicate points it cannot be created, temporary solution: skip face
-              begin
-                face = group.entities.add_face pts
+              # when 2 faces are on the same plane no perpendicular face is needed
+              unless pts[1] == pts[2]
+              
+                # check if the resulting face intersects itself
+                ########???????? Is a self intersecting face a problem? It results in a valid volume...
+                #if (pts[0] - pts[1]).length < (pts[0] - pts[2]).length # not always correct...
+                  #puts "cross!!!"
+                  #line1 = [pts[0], (pts[0] - pts[1])]
+                  #line2 = [pts[3], (pts[3] - pts[2])]
+                  #puts point = Geom.intersect_line_line(line1, line2)
+                  
+                  ## split in two triangular faces!
+                  #face = group.entities.add_face pts[0], point, pts[3]
+                  #face = group.entities.add_face pts[1], point, pts[2]
+                #else # create face
+                  face = group.entities.add_face pts
+                #end
                 
                 if softness == 1
                   #face.edges[1].soft = true
@@ -387,14 +385,10 @@ module Brewsky
                 d = vector.dot vector2
                 
                 unless d.abs < 0.000001
-                  
-                  #better not recreate layer every time?
-                  Sketchup.active_model.layers.add "element_connections"
-                  face.layer= "element_connections"
+                  # create layer for connecting faces unless it already exists
+                  Sketchup.active_model.layers.add 'element_connections' unless Sketchup.active_model.layers['element_connections']
+                  face.layer= 'element_connections'
                 end
-              rescue
-                puts "error: failed to create face"
-                self.self_destruct # ??? self destruct should be the end of the method, face_top pot
               end
 
               i += 1
