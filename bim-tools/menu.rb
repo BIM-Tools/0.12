@@ -84,7 +84,7 @@ module Brewsky
       c.background_image = on_off
           
       #refresh all geometry
-      @bimTools.active_BtProject.library.entities.each do |bt_entity|
+      BimTools.active_BtProject.library.entities.each do |bt_entity|
         bt_entity.update_geometry
       end
       
@@ -110,6 +110,7 @@ module Brewsky
       @window.set_size( 243, 400 )
       @window.show
       @window.set_size( 243, 400 )
+      ObserverManager.selection_observer.activate
     end # def open
     
     def close_section( section )

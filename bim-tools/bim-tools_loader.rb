@@ -18,7 +18,7 @@
 module Brewsky
  module BimTools
   extend self
-  attr_accessor :projects, :toolbar, :btDialog
+  attr_accessor :projects, :toolbar, :btDialog, :active_BtProject
   
   PLATFORM_IS_OSX     = ( Object::RUBY_PLATFORM =~ /darwin/i ) ? true : false
   PLATFORM_IS_WINDOWS = !PLATFORM_IS_OSX
@@ -34,15 +34,16 @@ module Brewsky
   # create BIM-Tools toolbar
   @toolbar = UI::Toolbar.new "BIM-Tools"
   @toolbar.show # needed???
+
+  def set_active_BtProject
+    @projects.each_value do |project|
+      @active_BtProject = project if project.model == Sketchup.active_model
+    end
+  end
   
   # create BimTools project for initial active model
   ClsBtProject.new
-  
-  def active_BtProject # does active project have to be re-calculated all the time?
-    @projects.each_value do |project|
-      return project if project.model == Sketchup.active_model
-    end
-  end
+
   def new_BtProject
     ClsBtProject.new # Closed SketchUp models must also be removed from projects!
   end

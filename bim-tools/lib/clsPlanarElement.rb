@@ -96,10 +96,7 @@ module Brewsky
 ########end
 
 
-        # check if the entities observer is active
-        active_entities = Sketchup.active_model.active_entities
-        observer_manager = Brewsky::BimTools::ObserverManager
-        observer_manager.add_entities_observer(@project, active_entities)
+      ObserverManager.entities_observer.activate
 
         
       end

@@ -81,16 +81,12 @@ module Brewsky
         
         # When creating a new project, check if there are any IFC entities present in the current SketchUp model
         ClsFindIfcEntities.new(self)
-      
-        # Create the entities observer for the new project, to auto-update the geometry
-        @active_entities = Sketchup.active_model.active_entities
-        Brewsky::BimTools::ObserverManager.add_entities_observer(@project, @active_entities)
-    
-        # Create the selection observer to the new model, to keep the dialog up-to-date
-        Brewsky::BimTools::ObserverManager.add_selection_observer(@project)
         
         # Add project to projects list
         Brewsky::BimTools.projects[@model] = self
+        
+        # update the active project
+        Brewsky::BimTools.set_active_BtProject
         
         return self
       end
