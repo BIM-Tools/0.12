@@ -70,12 +70,6 @@ module Brewsky
           end
         end
         @project.bt_entities_set_geometry(a_connecting_faces)
-        
-        # check if the entities observer needs to be removed
-        active_entities = Sketchup.active_model.active_entities
-        observer_manager = Brewsky::BimTools::ObserverManager
-        observer_manager.add_entities_observer(@project, active_entities)
-        
       end
       
       # hide OR geometry OR source
