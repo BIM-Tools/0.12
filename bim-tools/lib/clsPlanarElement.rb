@@ -248,10 +248,17 @@ module Brewsky
                   plane_vector = normal.cross line_vector # unit vector voor plane
                   plane = [point, plane_vector]
                 else
-                  a_connecting_faces[0]
                   connecting_entity = find_bt_entity_for_face(a_connecting_faces[0])
-                  bottom_line = Geom.intersect_plane_plane(self.planes[0], connecting_entity.planes[0])
-                  top_line = Geom.intersect_plane_plane(self.planes[1], connecting_entity.planes[1])
+                  
+                  # get the line where the planes intersect
+                  # if one of the faces is reversed the intersecting planes need to be switched
+                  if edge.reversed_in?( @source ) == edge.reversed_in?( a_connecting_faces[0])
+                    bottom_line = Geom.intersect_plane_plane(self.planes[0], connecting_entity.planes[1])
+                    top_line = Geom.intersect_plane_plane(self.planes[1], connecting_entity.planes[0])
+                  else
+                    bottom_line = Geom.intersect_plane_plane(self.planes[1], connecting_entity.planes[1])
+                    top_line = Geom.intersect_plane_plane(self.planes[0], connecting_entity.planes[0])
+                  end
                   point1 = bottom_line[0]
                   point2 = bottom_line[0] + bottom_line[1]
                   point3 = top_line[0]
