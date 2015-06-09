@@ -586,6 +586,7 @@ module Brewsky
         #check_geometry
         unless @geometry.deleted?
           t = @geometry.transformation.inverse
+          #(!) if @source is deleted: error! 
           @source.vertices.each do |vertex|
             p = vertex.position.transform t
             if min.nil?

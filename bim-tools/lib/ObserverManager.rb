@@ -146,38 +146,35 @@ module Brewsky
               
               # check if entity is part of a building element
               if bt_entity = BimTools.active_BtProject.library.source_to_bt_entity(BimTools.active_BtProject, entity)
-              
-              # this causes way too much overhead because every object is recreated multiple times
-              
-                # do not refresh geometry when only "hidden"-state is changed
-                # DEPRECATED because "toggle"tool disables observers
-                #if bt_entity.source_hidden? == bt_entity.source.hidden?
-                  
-                  
-                  
-                  
-                  # check if a tool is active that can change geometry
-                  # or could the check better be reversed?
-                  tools = Sketchup.active_model.tools
-									id = tools.active_tool_id
-                  if [21031, 21048, 21041, 21065, 21094, 21095, 21096, 21100, 21129, 21236, 21525].include? id
-	                  puts "source changed"
-										BimTools.active_BtProject.source_changed(bt_entity)
-                  end
-                  # 21019 = EraseTool ???
-                  # 21074 = PaintTool ???
-                  # 21013 = PasteTool ???
-                  # 21020 = SketchTool ???
-                  
-                #else
-                #  bt_entity.source_hidden = bt_entity.source.hidden?
-                #end
+
+                # check if a tool is active that can change geometry
+                # or could the check better be reversed?
+                tools = Sketchup.active_model.tools
+                id = tools.active_tool_id
+                if [21019, 21074, 21013, 21020, 21022, 21031, 21048, 21041, 21065, 21094, 21095, 21096, 21100, 21129, 21236, 21525].include? id
+                  BimTools.active_BtProject.source_changed(bt_entity)
+                end
               else
                 guid = entity.get_attribute "ifc", "guid"
                 unless guid.nil?
                   puts "Search for missing faces"
                   # only start this when faces are deleted?
                   BimTools.active_BtProject.source_recovery
+                end
+              end
+            elsif entity.is_a?(Sketchup::Edge)
+              
+              # check if entity connects to a building element
+              entity.faces.each do |face|
+                if bt_entity = BimTools.active_BtProject.library.source_to_bt_entity(BimTools.active_BtProject, face)
+                    
+                  # check if a tool is active that can change geometry
+                  # or could the check better be reversed?
+                  tools = Sketchup.active_model.tools
+                  id = tools.active_tool_id
+                  if [21019, 21074, 21013, 21020, 21022, 21031, 21048, 21041, 21065, 21094, 21095, 21096, 21100, 21129, 21236, 21525].include? id
+                    BimTools.active_BtProject.source_changed(bt_entity)
+                  end
                 end
               end
             elsif entity.is_a?(Sketchup::ComponentInstance)
