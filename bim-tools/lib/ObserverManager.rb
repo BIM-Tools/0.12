@@ -47,33 +47,22 @@ module Brewsky
           Sketchup.remove_observer self
         end
         def onNewModel(model)
-          # reset observers to the new model
-          ObserverManager.model_observer.activate
-          ObserverManager.entities_observer.activate
-          ObserverManager.selection_observer.activate
-          
-          # create new BtProject
-          Brewsky::BimTools.new_BtProject
+          load_model
         end
         def onOpenModel(model)
-          
-          # reset observers to the new model
-          ObserverManager.model_observer.activate
-          ObserverManager.entities_observer.activate
-          ObserverManager.selection_observer.activate
+          load_model
+        end
+        def onActivateModel(model)
+          load_model
+        end
+        def load_model
           
           # create new BtProject
           Brewsky::BimTools.new_BtProject
-        end
-        def onActivateModel(model)
           
           # reset observers to the new model
-          ObserverManager.model_observer.activate
-          ObserverManager.entities_observer.activate
-          ObserverManager.selection_observer.activate
-        
-          # update the active project
-          BimTools.set_active_BtProject
+          ObserverManager.unload
+          ObserverManager.load
         end
         
         # (?) on close model, remove btProject?
@@ -147,7 +136,6 @@ module Brewsky
         
         # what to do if element is changed, and check if part of BtEntity.
         def onElementModified(entities, entity)
-          puts 'modified'
           unless entity.deleted?
             if entity.is_a?(Sketchup::Face)
               
