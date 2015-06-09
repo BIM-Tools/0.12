@@ -147,19 +147,13 @@ module Brewsky
         
         # what to do if element is changed, and check if part of BtEntity.
         def onElementModified(entities, entity)
+          puts 'modified'
           unless entity.deleted?
             if entity.is_a?(Sketchup::Face)
               
               # check if entity is part of a building element
               if bt_entity = BimTools.active_BtProject.library.source_to_bt_entity(BimTools.active_BtProject, entity)
-
-                # check if a tool is active that can change geometry
-                # or could the check better be reversed?
-                tools = Sketchup.active_model.tools
-                id = tools.active_tool_id
-                if [21019, 21074, 21013, 21020, 21022, 21031, 21048, 21041, 21065, 21094, 21095, 21096, 21100, 21129, 21236, 21525].include? id
-                  BimTools.active_BtProject.source_changed(bt_entity)
-                end
+                BimTools.active_BtProject.source_changed(bt_entity)
               else
                 guid = entity.get_attribute "ifc", "guid"
                 unless guid.nil?
@@ -173,14 +167,7 @@ module Brewsky
               # check if entity connects to a building element
               entity.faces.each do |face|
                 if bt_entity = BimTools.active_BtProject.library.source_to_bt_entity(BimTools.active_BtProject, face)
-                    
-                  # check if a tool is active that can change geometry
-                  # or could the check better be reversed?
-                  tools = Sketchup.active_model.tools
-                  id = tools.active_tool_id
-                  if [21019, 21074, 21013, 21020, 21022, 21031, 21048, 21041, 21065, 21094, 21095, 21096, 21100, 21129, 21236, 21525].include? id
-                    BimTools.active_BtProject.source_changed(bt_entity)
-                  end
+                  BimTools.active_BtProject.source_changed(bt_entity)
                 end
               end
             elsif entity.is_a?(Sketchup::ComponentInstance)
