@@ -97,6 +97,12 @@ module Brewsky
         def onActivePathChanged(model)
           ObserverManager.entities_observer.activate
         end
+        
+        # Re-load ModelObserver to re-connect BtEntities
+        def onExplode(model)
+          ObserverManager.unload
+          ObserverManager.load
+        end # def onExplode
       end # class BtModelObserver
       
       # create this observer once and just link/unlink it to entities collections
