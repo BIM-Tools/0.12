@@ -733,35 +733,35 @@ module Brewsky
       def properties_editable
         
         if @geometry.deleted?
-          set_geometry
-        end
+          self_destruct
+        else
+          a_types = Array.new
+          a_types << @element_type
+          possible_types.each do |type|
+            if type != @element_type
+              a_types << type
+            end
+          end
+              
+          a_layers = Array.new
+          a_layers << @geometry.layer.name
+          Sketchup.active_model.layers.each do |layer|
+            if layer != @geometry.layer
+              a_layers << layer.name
+            end
+          end
         
-        a_types = Array.new
-        a_types << @element_type
-        possible_types.each do |type|
-          if type != @element_type
-            a_types << type
-          end
+          h_Properties = Hash.new
+          h_Properties[:thickness] = @width
+          h_Properties[:offset] = @offset
+          h_Properties[:length] = length?
+          h_Properties[:height] = height?
+          h_Properties[:type] = a_types
+          #h_Properties[:layer] = a_layers
+          h_Properties[:name] = @name
+          h_Properties[:description] = @description
+          return h_Properties
         end
-            
-        a_layers = Array.new
-        a_layers << @geometry.layer.name
-        Sketchup.active_model.layers.each do |layer|
-          if layer != @geometry.layer
-            a_layers << layer.name
-          end
-        end
-      
-        h_Properties = Hash.new
-        h_Properties[:thickness] = @width
-        h_Properties[:offset] = @offset
-        h_Properties[:length] = length?
-        h_Properties[:height] = height?
-        h_Properties[:type] = a_types
-        #h_Properties[:layer] = a_layers
-        h_Properties[:name] = @name
-        h_Properties[:description] = @description
-        return h_Properties
       end
       
       def properties=(h_Properties)

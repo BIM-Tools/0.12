@@ -48,7 +48,9 @@ module Brewsky
           source.hidden= false
           
           # remove all bt properties from face
-          @source.attribute_dictionaries.delete 'ifc'
+          if @source.attribute_dictionaries
+            @source.attribute_dictionaries.delete 'ifc'
+          end
         end
         unless @geometry.deleted?
           @geometry.erase!
@@ -95,10 +97,12 @@ module Brewsky
       
       # returns the volume of the geometry
       def volume?
-        if @geometry.deleted?
-          set_geometry
+        unless marked_for_deletion?
+          if @geometry.deleted?
+            set_geometry
+          end
+          return @geometry.volume
         end
-        return @geometry.volume
       end
       
       # returns the guid of the bt_element

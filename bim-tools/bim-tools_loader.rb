@@ -25,7 +25,6 @@ module Brewsky
   
   require File.join( PATH, 'clsBtProject.rb' )
   require File.join( PATH, 'menu.rb' )
-  require File.join( PATH, 'ui', 'bt_dialog.rb' )
   require File.join( PATH, 'lib', 'ObserverManager.rb' )
   
   # create projects list
@@ -47,9 +46,6 @@ module Brewsky
   def new_BtProject
     ClsBtProject.new # Closed SketchUp models must also be removed from projects!
   end
-  
-  # create the webdialog manager
-  @btDialog = Bt_dialog.new(self)
   
   # load all available tools
   Dir[TOOLS + '/*.rb'].each {|file| require file }

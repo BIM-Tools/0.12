@@ -290,7 +290,6 @@ module Brewsky
               v.uniq!
               @section.set_value( k, v )
             else # multiple strings(no listbox)
-              puts "NO array!"
               @section.set_value( k, "..." )
             end
           end

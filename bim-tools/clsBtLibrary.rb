@@ -72,7 +72,7 @@ module Brewsky
         bt_entities = Array.new
         entities.each do |entity|
         
-          # test if the source object is part of a bt_entity
+          # test if the geometry object is part of a bt_entity
           bt_entity = geometry_to_bt_entity(project, entity)
           if bt_entity != nil
             bt_entities << bt_entity

@@ -92,6 +92,14 @@ module Brewsky
           ObserverManager.unload
           ObserverManager.load
         end # def onExplode
+        
+        # Re-load ModelObserver on undo
+        # (!) workaround to prevent recreating objects the moment you undo them
+        # (!) does not prevent recreating them later on
+        def onTransactionUndo(model)
+          ObserverManager.unload
+          ObserverManager.load
+        end # def onTransactionUndo
       end # class BtModelObserver
       
       # create this observer once and just link/unlink it to entities collections
@@ -172,7 +180,6 @@ module Brewsky
                 end
               end
             end
-        
           end
         end
       end      
