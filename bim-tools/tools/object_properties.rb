@@ -272,8 +272,11 @@ module Brewsky
         # alle values vergelijken + samenvoegen + formatten als ze geen string zijn
         # section.set value aanroepen per hash waarde
           
+          
         # source: http://stackoverflow.com/questions/5490952/merge-array-of-hashes-to-get-hash-of-arrays-of-values
-        hash = {}.tap{ |r| bt_entities.each{ |ent| ent.properties_editable.each{ |k,v| (r[k]||=[]) << v } } }
+        # first option not working in SU8
+        # hash = {}.tap{ |r| bt_entities.each{ |ent| ent.properties_editable.each{ |k,v| (r[k]||=[]) << v } } }
+        hash = bt_entities.inject({}) {|h,ent| ent.properties_editable.each{ |k,v| (h[k]||=[]) << v}; h}
 
         hash.each do | k,v|
           v.uniq!

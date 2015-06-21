@@ -101,7 +101,11 @@ module Brewsky
           if @geometry.deleted?
             set_geometry
           end
-          return @geometry.volume
+          if defined? @geometry.volume
+            return @geometry.volume
+          else
+            return '0'
+          end
         end
       end
       

@@ -43,8 +43,6 @@ module Brewsky
     @window = SKUI::Window.new( options )
     @window.add_script(File.join( PATH, 'js', 'bim-tools.js' ))
     
-
-    
     def on_off
       stored = Sketchup.read_default 'bim-tools', 'on_off'
       value = 'off'
@@ -52,8 +50,8 @@ module Brewsky
       image = File.join( PATH_IMAGE, value + '_large.png' )
       
       # calculate relative path
-      require 'pathname'; 
-      return "../" + Pathname.new( image ).relative_path_from(Pathname.new( SKUI_PATH )).to_s # wrong path?
+      #require 'pathname'; 
+      #return "../" + Pathname.new( image ).relative_path_from(Pathname.new( SKUI_PATH )).to_s # wrong path?
 
     end
 
@@ -209,7 +207,7 @@ module Brewsky
         @groupbox.add_control( txt )
         
         # create formatted title from symbol
-        title = symbol.capitalize.to_s.gsub('_', ' ')
+        title = symbol.to_s.capitalize.to_s.gsub('_', ' ')
     
         lbl = SKUI::Label.new( title + ':', txt )
         lbl.position( 10, @groupbox.height - 19 )
@@ -232,7 +230,7 @@ module Brewsky
         @groupbox.add_control( lst )
         
         # create formatted title from symbol
-        title = symbol.capitalize.to_s.gsub('_', ' ')
+        title = symbol.to_s.capitalize.to_s.gsub('_', ' ')
     
         lbl = SKUI::Label.new( title + ':', lst )
         lbl.position( 10, @groupbox.height - 19 )
