@@ -28,13 +28,13 @@ module Brewsky
         mainpath = pathname.split('lib')[0]
     
         # open the file
-        f = File.open(mainpath + "/bim-tools.cfg", 'r')
-    
+        f = File.open(File.join(mainpath, 'bim-tools.cfg'), 'r')
+
         # loop through each record in the file, adding each record to our array.
         f.each_line { |line|
           
           # parse line unless the first character == # or the line is empty
-          unless line[0,1] == "#" || line.length == 1
+          unless line[0,1] == "#" || line.length == 1 || line.length == 2         
             a_Value = line.split('=')
             key = a_Value[0].strip
             value = a_Value[1].strip

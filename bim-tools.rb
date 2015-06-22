@@ -43,7 +43,7 @@ module Brewsky
 
     # Create Extension
     bimtools = SketchupExtension.new "bim-tools", File.join( PATH, 'bim-tools_loader.rb' )
-    bimtools.version = '0.13.3'
+    bimtools.version = '0.13.4'
     bimtools.description = "Tools to create building parts and export these to IFC."
     Sketchup.register_extension bimtools, true
   end # module BimTools
