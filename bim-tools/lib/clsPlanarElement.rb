@@ -244,7 +244,7 @@ module Brewsky
               # bekijk of het vlak verticaal moet zijn of moet aansluiten op naastliggende geometrie
               if a_connecting_faces.length == 1
                 # if source and connecting faces are parallel, then also create vertical end.
-                if @source.normal == a_connecting_faces[0].normal
+                if @source.normal.parallel? a_connecting_faces[0].normal
                   plane_vector = normal.cross line_vector # unit vector voor plane
                   plane = [point, plane_vector]
                 else
