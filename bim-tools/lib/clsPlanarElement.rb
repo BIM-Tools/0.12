@@ -108,33 +108,46 @@ module Brewsky
         self.check_source
         # do not update geometry when the planar element is in the process of beeing deleted(marked for deletion)
         if @deleted == false
-          if @geometry.nil?
-            #if @geometry.deleted?
-              group = entities.add_group
-              @geometry = group
-            #else
-            #  group = @geometry
-            #  group.entities.clear!
-            #end
-          else
-            if @geometry.deleted?
-              group = entities.add_group
-              @geometry = group
-            else
-              group = @geometry
-              
-              # gets fired furtheron in the script, just before drawing so temporary group also gets deleted
-              group.entities.clear!
-            end
-          end
           
           #find origin
           tmp_origin = @source.vertices[0].position
           zaxis = @source.normal
           t_base_plane = Geom::Transformation.new(tmp_origin, zaxis)
-          
           ti = t_base_plane.inverse
-           
+          
+          if @geometry.nil?
+            #if @geometry.deleted?
+            
+            model = Sketchup.active_model
+            definitions = model.definitions
+            new_name = definitions.unique_name "BuildingElement"
+            componentdefinition = definitions.add new_name
+            group = entities.add_instance componentdefinition, t_base_plane
+            
+              #group = entities.add_group
+              @geometry = group
+            #else
+            #  group = @geometry
+            #  group.definition.entities.clear!
+            #end
+          else
+            if @geometry.deleted?
+              
+              model = Sketchup.active_model
+              definitions = model.definitions
+              new_name = definitions.unique_name "BuildingElement"
+              componentdefinition = definitions.add new_name
+              group = entities.add_instance componentdefinition, t_base_plane
+              #group = entities.add_group
+              @geometry = group
+            else
+              group = @geometry
+              
+              # gets fired furtheron in the script, just before drawing so temporary group also gets deleted
+              group.definition.entities.clear!
+            end
+          end
+          
           a_Vertices = Array.new
           a_Vectors = Array.new
           x = nil
@@ -296,7 +309,7 @@ module Brewsky
           
           
           #placed here so temporary group also gets deleted
-          group.entities.clear!
+          group.definition.entities.clear!
           
           aLoopsVertPlanes.each do |aPlanes|#aPlanesVert|
             
@@ -366,10 +379,10 @@ module Brewsky
                   #puts point = Geom.intersect_line_line(line1, line2)
                   
                   ## split in two triangular faces!
-                  #face = group.entities.add_face pts[0], point, pts[3]
-                  #face = group.entities.add_face pts[1], point, pts[2]
+                  #face = group.definition.entities.add_face pts[0], point, pts[3]
+                  #face = group.definition.entities.add_face pts[1], point, pts[2]
                 #else # create face
-                  face = group.entities.add_face pts
+                  face = group.definition.entities.add_face pts
                 #end
                 
                 if softness == 1
@@ -399,9 +412,9 @@ module Brewsky
             end
             
             # create the top and bottom faces
-            face_top = group.entities.add_face aFacePtsTop
+            face_top = group.definition.entities.add_face aFacePtsTop
             face_top.material= @source.material
-            face_bottom = group.entities.add_face aFacePtsBottom
+            face_bottom = group.definition.entities.add_face aFacePtsBottom
             face_bottom.material= @source.back_material
             
             # remove all temporary top and bottom faces
@@ -414,13 +427,13 @@ module Brewsky
       
           # move group entities back in position with the inverse transformation
           a_entities = Array.new
-          group.entities.each do |entity| # pas de transformatie toe op de volledige inhoud van de group, dit kan beter vooraf gedaan worden...
+          group.definition.entities.each do |entity| # pas de transformatie toe op de volledige inhoud van de group, dit kan beter vooraf gedaan worden...
             a_entities << entity
           end
-          group.entities.transform_entities(t_base_plane.invert!, a_entities) # misschien kan beter transform_by_vectors gebruikt worden?
+          group.definition.entities.transform_entities(t_base_plane.invert!, a_entities) # misschien kan beter transform_by_vectors gebruikt worden?
           
           # reset bounding box
-          group.entities.parent.invalidate_bounds
+          group.definition.entities.parent.invalidate_bounds
           
           # set the group as the planar´s geometry
           #@geometry = group
@@ -449,7 +462,7 @@ module Brewsky
         # start only if get_glued_instances is not nil???????
         
         aLoops = Array.new
-        group = @geometry.entities.add_group
+        group = @geometry.definition.entities.add_group
         aEdges = Array.new
         
         @source.get_glued_instances.each do |instance|
@@ -464,7 +477,7 @@ module Brewsky
                   new_start = entity.start.position.transform transform
                   new_end = entity.end.position.transform transform
                   
-                  edge = group.entities.add_line new_start, new_end
+                  edge = group.definition.entities.add_line new_start, new_end
                   aEdges << edge
                 end
               end
@@ -473,18 +486,18 @@ module Brewsky
         end
         
 ############### ?BUGSPLAT? #######################
-        group.entities.intersect_with false, group.transformation, group.entities, group.transformation, true, aEdges
+        group.definition.entities.intersect_with false, group.transformation, group.definition.entities, group.transformation, true, aEdges
 ############### ?BUGSPLAT? #######################
 
         # create all possible faces
-        group.entities.each do |entity|
+        group.definition.entities.each do |entity|
           if entity.is_a?(Sketchup::Edge)
             entity.find_faces
           end
         end
         
         # delete unneccesary edges
-        group.entities.each do |entity|
+        group.definition.entities.each do |entity|
           if entity.is_a?(Sketchup::Edge)
             if entity.faces.length != 1
               entity.erase!
@@ -493,7 +506,7 @@ module Brewsky
         end
         
         #find all outer loops of the cutting component
-        group.entities.each do |entity|
+        group.definition.entities.each do |entity|
           if entity.is_a?(Sketchup::Face)
             aLoops << entity.outer_loop
           end
