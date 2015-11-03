@@ -67,7 +67,7 @@ module Brewsky
         
         entities.each do |entity|
           bt_entity = nil
-          if entity.is_a?(Sketchup::Group)
+          if entity.is_a?(Sketchup::ComponentInstance)
             bt_entity = @project.library.geometry_to_bt_entity(@project, entity)
           elsif entity.is_a?(Sketchup::Face)
             bt_entity = @project.library.source_to_bt_entity(@project, entity)

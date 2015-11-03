@@ -62,7 +62,7 @@ module Brewsky
           #  @h_guid_list[guid] = Array.new
           #  @h_guid_list[guid] << ent
           #end
-          if ent.is_a?(Sketchup::Group)
+          if ent.is_a?(Sketchup::ComponentInstance)
             if @lib.geometry_to_bt_entity(@project, ent).nil?
               ### add_bt_entity(ent)
               if @h_guid_list[guid]
