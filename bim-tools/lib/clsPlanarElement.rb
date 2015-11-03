@@ -1,17 +1,17 @@
 #       clsPlanarElement.rb
-#       
-#       Copyright (C) 2013 Jan Brouwer <jan@brewsky.nl>
-#       
+#
+#       Copyright (C) 2015 Jan Brouwer <jan@brewsky.nl>
+#
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation, either version 3 of the License, or
 #       (at your option) any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -19,31 +19,31 @@ module Brewsky
   module BimTools
     require 'bim-tools/lib/clsBuildingElement.rb'
     require 'bim-tools/lib/ObserverManager.rb'
-    
+
     # building element subtype “planar” class
     # Object "parallel" to sketchup "face" object
     class ClsPlanarElement < ClsBuildingElement
       attr_reader :element_type, :openings
       def initialize(project, face, width=nil, offset=nil, guid=nil) # profilecomponent=width, offset
-      
+
         # load default values: This should be done once in a central place ?BtProject?
         require 'bim-tools/lib/clsDefaultValues.rb'
         @default = ClsDefaultValues.new
-        
+
         @project = project
-        
+
         # check if there is a valid source face
         if face.is_a? Sketchup::Face
           @source = face
         else
           raise "No valid source face given"
         end
-        
+
         @deleted = false
         @source_hidden = @project.visible_geometry? # for function in ClsBuildingElement
         @geometry
         @aPlanesHor
-        
+
         # Array that holds sub-arrays containing the point3d-objects from all opening-loops
         @openings = Array.new
         @element_type
@@ -52,7 +52,7 @@ module Brewsky
         @guid = guid
         @length
         @height
-        
+
         if width.nil?
           @width = @default.get("planar_width").to_l
         else
@@ -63,7 +63,7 @@ module Brewsky
         else
           @offset = offset
         end
-      
+
         init_type
         add_to_lib
         if @guid.nil?
@@ -74,65 +74,63 @@ module Brewsky
         #a_set_geometry = Array[self]
         # updates geometry connecting bt_entities(how to exclude double updating itself?)
         #@project.bt_entities_set_geometry(a_set_geometry)
-        
+
         # deze observer houdt het basisvlak in de gaten, mocht deze wijzigen dan wijzigt ook de geometrie.
         #observer = SourceObserver.new
         #observer.set_planar(self)
         #@source.add_observer(observer)
 
-######### check if the entities observer is active
-########active_entities = Sketchup.active_model.active_entities
-########observer_manager = Brewsky::BimTools::ObserverManager
-########if entities_observer.nil?
-########    puts "creating entities observer"
-########  observer_manager.add_entities_observer(@project, active_entities)
-########else
-########  observed = observer_manager.entities_observer.observed
-########  unless active_entities == observed
-########    puts "creating entities observer"
-########  
-########    observer_manager.add_entities_observer(@project, active_entities)
-########  end
-########end
+        ######### check if the entities observer is active
+        ########active_entities = Sketchup.active_model.active_entities
+        ########observer_manager = Brewsky::BimTools::ObserverManager
+        ########if entities_observer.nil?
+        ########    puts "creating entities observer"
+        ########  observer_manager.add_entities_observer(@project, active_entities)
+        ########else
+        ########  observed = observer_manager.entities_observer.observed
+        ########  unless active_entities == observed
+        ########    puts "creating entities observer"
+        ########
+        ########    observer_manager.add_entities_observer(@project, active_entities)
+        ########  end
+        ########end
 
+        ObserverManager.entities_observer.activate
 
-      ObserverManager.entities_observer.activate
-
-        
       end
-      
+
       # create the geometry for the planar element
       def set_geometry
-      
+
         entities = Sketchup.active_model.active_entities
         self.check_source
         # do not update geometry when the planar element is in the process of beeing deleted(marked for deletion)
         if @deleted == false
-          
+
           #find origin
           tmp_origin = @source.vertices[0].position
           zaxis = @source.normal
           t_base_plane = Geom::Transformation.new(tmp_origin, zaxis)
           ti = t_base_plane.inverse
-          
+
           if @geometry.nil?
             #if @geometry.deleted?
-            
+
             model = Sketchup.active_model
             definitions = model.definitions
             new_name = definitions.unique_name "BuildingElement"
             componentdefinition = definitions.add new_name
             group = entities.add_instance componentdefinition, t_base_plane
-            
-              #group = entities.add_group
-              @geometry = group
+
+            #group = entities.add_group
+            @geometry = group
             #else
             #  group = @geometry
             #  group.definition.entities.clear!
             #end
           else
             if @geometry.deleted?
-              
+
               model = Sketchup.active_model
               definitions = model.definitions
               new_name = definitions.unique_name "BuildingElement"
@@ -142,24 +140,24 @@ module Brewsky
               @geometry = group
             else
               group = @geometry
-              
+
               # gets fired furtheron in the script, just before drawing so temporary group also gets deleted
               group.definition.entities.clear!
             end
           end
-          
+
           a_Vertices = Array.new
           a_Vectors = Array.new
           x = nil
           y = nil
           z = nil
-          
+
           @source.vertices.each do |vertex|
             po = vertex.position
             pn = Geom::Point3d.new(po.x, po.y, po.z)
-            
+
             pn.transform! ti
-            
+
             #find lowest value for x, y and z
             if x.nil?
               x = pn.x
@@ -183,77 +181,76 @@ module Brewsky
               end
             end
           end
-          
+
           point = Geom::Point3d.new(x, y, z)
-    
+
           translation = Geom::Transformation.new point
-          
+
           #origin.transform! t_base_plane
-          
+
           t_base_plane = t_base_plane * translation
-          
+
           group.transformation = t_base_plane
-          
+
           # array that holds the vertical-planes-array for every loop
           aLoopsVertPlanes = Array.new
           nOuterLoopNum = 0
           nLoopCount = 0
-          
+
           loops = get_openings[0]
           #temporary group "get_openings[1]" gets deleted in line 243
-          
+
           #add the outer loop on position 0
           loops.insert(0, @source.outer_loop)# << @source.outer_loop
           nOuterLoopNum == 0
-    
+
           loops.each do |loop|
-            
+
             # keep the loops array-index of the outer loop
             #if loop == @source.outer_loop
             #  nOuterLoopNum == nLoopCount
             #end
-            
+
             nLoopCount += 1
-            
+
             aPlanesVert = Array.new
             aPlanesSoft = Array.new
-            
+
             # let op! als 2 vlakken gelijk zijn kan geen snijlijn worden uitgerekend!
-            
+
             #bepaal de zij-planes door de cross-product te berekenen van de 2 vectoren(normal basisplane en vector edge) en 1 punt (edge.start) op te geven.
             normal = @source.normal # 1e vector
-            
-            
+
             prev_edge = loop.edges.last
-            
+
             # zoek de verticale plane voor alle edges
             loop.edges.each do |edge|# @source.outer_loop.edges.each do |edge|
-            
+
               if edge.soft?
                 softness = 1
               else
                 softness = 0
               end
-            
+
               line = edge.line # line bestaat uit een array van 1 punt en 1 vector
               point = line[0] # punt op lijn
               line_vector = line[1] # 2e vector
-              
+
               # determine the number of connecting bt-source-faces
               a_connecting_faces = Array.new # Array to hold al connecting faces
               connected = edge.faces
               connected.each do |con_ent|
-              
+
                 # check only if this face is not the base-face
                 if con_ent != @source
-                
+
                   # add only bt-source-faces to array, bt-entities must not react to "normal" faces
                   if @project.library.source_to_bt_entity(@project, con_ent)
                     a_connecting_faces << con_ent
                   end
                 end
               end
-              
+
               # bekijk of het vlak verticaal moet zijn of moet aansluiten op naastliggende geometrie
               if a_connecting_faces.length == 1
                 # if source and connecting faces are parallel, then also create vertical end.
@@ -262,7 +259,7 @@ module Brewsky
                   plane = [point, plane_vector]
                 else
                   connecting_entity = find_bt_entity_for_face(a_connecting_faces[0])
-                  
+
                   # get the line where the planes intersect
                   # if one of the faces is reversed the intersecting planes need to be switched
                   if edge.reversed_in?( @source ) == edge.reversed_in?( a_connecting_faces[0])
@@ -282,67 +279,66 @@ module Brewsky
                 plane_vector = normal.cross line_vector # unit vector voor plane
                 plane = [point, plane_vector]
               end
-              
-              #bekijk of de 
+
+              #bekijk of de
               if edge.line[1].parallel? prev_edge.line[1] # what if the vectors are on the same line but facing each other?
                 perp_plane = [edge.start.position, prev_edge.line[1]]
                 aPlanesVert << perp_plane
               end
               prev_edge = edge
-              
+
               # create a sub array that holds the softness-status of the edge and the plane
               #aPlane = Array[plane, softness]
-              
+
               aPlanesVert << plane #aPlane# voeg toe aan array met verticale planes
               aPlanesSoft << softness
             end
-            
+
             # Send both arrays to the loops array
             aPlanes = Array[aPlanesVert, aPlanesSoft]
             aLoopsVertPlanes << aPlanes #aPlanesVert
           end
-          
+
           nLoopCount = 0
-          
+
           # array will hold all temporary top and bottom faces(that is all exept that of the outer loop)
           aTempFaces = Array.new
-          
-          
+
           #placed here so temporary group also gets deleted
           group.definition.entities.clear!
-          
+
           aLoopsVertPlanes.each do |aPlanes|#aPlanesVert|
-            
+
             # get the array of planes
             aPlanesVert = aPlanes[0]
-            
+
             # get the corresponding array with plane softness
             # "hard" = 0
             # soft = 1
             aPlanesSoft = aPlanes[1]
-            
+
             # collect the needed points for the top and bottom faces in an array
             aFacePtsTop = Array.new
             aFacePtsBottom = Array.new
-            
+
             # create side faces on every base-face edge
             i = 0
             j = aPlanesVert.length
             while i < j do
-            
+
               # get softness
               softness = aPlanesSoft[i]
-            
+
               plane = aPlanesVert[i]
               if i == 0
                 plane1 = aPlanesVert[j-1]
               else
                 plane1 = aPlanesVert[i-1]
               end
-              
+
               # if both planes are parallel then there is no intersection between planes
               line_start = Geom.intersect_plane_plane(plane1, plane)
-              
+
               if i == j - 1
                 plane2 = aPlanesVert[0]
               else
@@ -350,14 +346,18 @@ module Brewsky
               end
               # if both planes are parallel then there is no intersection between planes
               line_end = Geom.intersect_plane_plane(plane2, plane)
-              
+
               pts = []
               pts[0] = Geom.intersect_line_plane(line_start, self.planes[0])
               pts[1] = Geom.intersect_line_plane(line_start, self.planes[1])
               pts[2] = Geom.intersect_line_plane(line_end, self.planes[1])
               pts[3] = Geom.intersect_line_plane(line_end, self.planes[0])
-              
-              
+
+              # ?crude? fix for reversed faces in opening sides
+              unless nOuterLoopNum == nLoopCount
+                pts.reverse!
+              end
+
               #if nOuterLoopNum == nLoopCount
               unless aFacePtsTop.last == pts[0]
                 aFacePtsTop << pts[0]
@@ -366,25 +366,25 @@ module Brewsky
                 aFacePtsBottom << pts[1]
               end
               #end
-              
+
               # when 2 faces are on the same plane no perpendicular face is needed
               unless pts[1] == pts[2]
-              
+
                 # check if the resulting face intersects itself
                 ########???????? Is a self intersecting face a problem? It results in a valid volume...
                 #if (pts[0] - pts[1]).length < (pts[0] - pts[2]).length # not always correct...
-                  #puts "cross!!!"
-                  #line1 = [pts[0], (pts[0] - pts[1])]
-                  #line2 = [pts[3], (pts[3] - pts[2])]
-                  #puts point = Geom.intersect_line_line(line1, line2)
-                  
-                  ## split in two triangular faces!
-                  #face = group.definition.entities.add_face pts[0], point, pts[3]
-                  #face = group.definition.entities.add_face pts[1], point, pts[2]
+                #puts "cross!!!"
+                #line1 = [pts[0], (pts[0] - pts[1])]
+                #line2 = [pts[3], (pts[3] - pts[2])]
+                #puts point = Geom.intersect_line_line(line1, line2)
+
+                ## split in two triangular faces!
+                #face = group.definition.entities.add_face pts[0], point, pts[3]
+                #face = group.definition.entities.add_face pts[1], point, pts[2]
                 #else # create face
-                  face = group.definition.entities.add_face pts
+                face = group.definition.entities.add_face pts
                 #end
-                
+
                 if softness == 1
                   #face.edges[1].soft = true
                   #face.edges[3].soft = true
@@ -393,14 +393,14 @@ module Brewsky
                   face.edges[1].hidden = true
                   face.edges[3].hidden = true
                 end
-                
+
                 face.material= @source.material
-                
+
                 #still errors
                 vector = Geom::Vector3d.new @source.normal
                 vector2 = Geom::Vector3d.new face.normal
                 d = vector.dot vector2
-                
+
                 unless d.abs < 0.000001
                   # create layer for connecting faces unless it already exists
                   Sketchup.active_model.layers.add 'element_connections' unless Sketchup.active_model.layers['element_connections']
@@ -410,13 +410,13 @@ module Brewsky
 
               i += 1
             end
-            
+
             # create the top and bottom faces
             face_top = group.definition.entities.add_face aFacePtsTop
             face_top.material= @source.material
             face_bottom = group.definition.entities.add_face aFacePtsBottom
             face_bottom.material= @source.back_material
-            
+
             # remove all temporary top and bottom faces
             unless nOuterLoopNum == nLoopCount
               face_top.erase!
@@ -424,27 +424,27 @@ module Brewsky
             end
             nLoopCount += 1
           end
-      
+
           # move group entities back in position with the inverse transformation
           a_entities = Array.new
           group.definition.entities.each do |entity| # pas de transformatie toe op de volledige inhoud van de group, dit kan beter vooraf gedaan worden...
             a_entities << entity
           end
           group.definition.entities.transform_entities(t_base_plane.invert!, a_entities) # misschien kan beter transform_by_vectors gebruikt worden?
-          
+
           # reset bounding box
           group.definition.entities.parent.invalidate_bounds
-          
+
           # set the group as the planar´s geometry
           #@geometry = group
-          
+
           # check if source or geometry must be hidden
           if @project.visible_geometry? == true
             @source.hidden=true
           else
             @geometry.hidden=true
           end
-          
+
           # save all properties as attributes in the group
           set_attributes
         end
@@ -452,23 +452,23 @@ module Brewsky
         #@aOpenings.each do |opening|
         #puts opening
         #end
-    
+
       end
-      
+
       # returns an array of all openings in a planar object(face-cutting instances AND normal openings(loops))
       # Make sure you delete the temporary group afterwards
       def get_openings
-      
+
         # start only if get_glued_instances is not nil???????
-        
+
         aLoops = Array.new
         group = @geometry.definition.entities.add_group
         aEdges = Array.new
-        
+
         @source.get_glued_instances.each do |instance|
-        
+
           transform =  group.transformation.invert! * instance.transformation
-        
+
           # copy all edges that are on the x-y plane to the new group
           instance.definition.entities.each do |entity|
             if entity.is_a?(Sketchup::Edge)
@@ -476,7 +476,7 @@ module Brewsky
                 if entity.end.position.z == 0
                   new_start = entity.start.position.transform transform
                   new_end = entity.end.position.transform transform
-                  
+
                   edge = group.definition.entities.add_line new_start, new_end
                   aEdges << edge
                 end
@@ -484,10 +484,10 @@ module Brewsky
             end
           end
         end
-        
-############### ?BUGSPLAT? #######################
+
+        ############### ?BUGSPLAT? #######################
         group.definition.entities.intersect_with false, group.transformation, group.definition.entities, group.transformation, true, aEdges
-############### ?BUGSPLAT? #######################
+        ############### ?BUGSPLAT? #######################
 
         # create all possible faces
         group.definition.entities.each do |entity|
@@ -495,7 +495,7 @@ module Brewsky
             entity.find_faces
           end
         end
-        
+
         # delete unneccesary edges
         group.definition.entities.each do |entity|
           if entity.is_a?(Sketchup::Edge)
@@ -504,23 +504,23 @@ module Brewsky
             end
           end
         end
-        
+
         #find all outer loops of the cutting component
         group.definition.entities.each do |entity|
           if entity.is_a?(Sketchup::Face)
             aLoops << entity.outer_loop
           end
         end
-        
+
         #get all non-outer_loops of the source face
         @source.loops.each do |loop|
           unless loop == @source.outer_loop
             aLoops << loop
           end
         end
-        
+
         t = @geometry.transformation.inverse
-        
+
         # copy all loop-Point3d-objects to the @openings array
         # the purpose of this is that the temporary group could be erased earlier
         aLoops.each do |loop|
@@ -531,82 +531,94 @@ module Brewsky
           end
           @openings << opening
         end
-        
+
         return Array[aLoops, group]
       end
-      
+
       def possible_types
         return Array["Wall", "Floor", "Roof"]
       end
+
       def length?
-      
+
         # define_length here might cause unneccesary overhead
         define_length
         return @length
-      end  
+      end
+
       def height?
-      
+
         # define_height here might cause unneccesary overhead
         define_height
         return @height
       end
+
       def width
         return @width
       end
+
       def width=(width)
         @width = width.to_l
         set_planes
       end
       alias :thickness= :width=
+
       def update_geometry
         set_planes
         set_geometry
         define_length
         define_height
       end
+
       def geometry=(geometry)
         @geometry = geometry
       end
+
       def offset
         return @offset
       end
+
       def offset=(offset)
         @offset = offset.to_l
         set_planes #???
       end
+
       def name=(name)
         @name = name
       end
+
       def description=(description)
         @description = description
       end
+
       def length=(length)
-        
+
         # scale_source to match new length
         scale_source(length.to_l, height?)
-        
+
         #set_planes
       end
+
       def height=(height)
-        
+
         # scale_source to match new height
         scale_source(length?, height.to_l)
-        
+
         #set_planes
       end
-      
+
       # calculate the planar´s "length" == size in x-direction
       def define_length
         length = nil
         min = nil
         max = nil
-        
+
         #check if geometry object is valid, how best?
         check_source
         #check_geometry
         unless @geometry.deleted?
           t = @geometry.transformation.inverse
-          #(!) if @source is deleted: error! 
+          #(!) if @source is deleted: error!
           @source.vertices.each do |vertex|
             p = vertex.position.transform t
             if min.nil?
@@ -624,13 +636,13 @@ module Brewsky
         end
         return @length = length.to_l
       end
-      
+
       # calculate the planar´s "height"  == size in y-direction
       def define_height
         height = nil
         min = nil
         max = nil
-        
+
         #check if geometry object is valid, how best?
         check_source
         #check_geometry
@@ -654,7 +666,7 @@ module Brewsky
         end
         return @height = height.to_l
       end
-      
+
       # scale @source to match a new height and length
       def scale_source(new_length, new_height)
         if new_length.nil? || new_length == 0
@@ -668,70 +680,70 @@ module Brewsky
           y_scale = new_height / height?
         end
         z_scale = 1
-        
+
         model = Sketchup.active_model
         entities = model.active_entities
-    
+
         t = @geometry.transformation
         ti = t.inverse
-        
+
         ts = Geom::Transformation.scaling(x_scale, y_scale, z_scale)
-        
+
         a_Vertices = Array.new
         a_Vectors = Array.new
-        
+
         @source.vertices.each do |vertex|
           po = vertex.position
           pn = Geom::Point3d.new(po.x, po.y, po.z)
-          
+
           pn.transform! ti
           pn.transform! ts
           pn.transform! t
-        
+
           vx = pn.x - po.x
           vy = pn.y - po.y
           vz = pn.z - po.z
-          
+
           v = Geom::Vector3d.new vx,vy,vz
-          
+
           a_Vertices << vertex
           a_Vectors << v
-          
+
         end
-        
+
         entities.transform_by_vectors a_Vertices, a_Vectors
-        
+
         #why is @source deleted??? is moving vertices the same as scaling face???
         @project.source_recovery
       end
-      
+
       # Array needed to find intersections with planes of connecting elements
       def planes
         return @aPlanesHor
       end
-      
+
       # hiermee worden de outer planes bepaald
       def set_planes
-      
+
         if @source.deleted?
           self_destruct
         else
-        
+
           # definieer het basisvlak voor het te maken element
           base_plane = @source.plane
-          
+
           # maak het top-vlak, door het originele array te kopieeren en bij de offset(laatste waarde) de nieuwe afstand op te tellen.
           # Plane is een array van 4 waarden, waarvan de eerste 3 de unit-vector van het vlak beschrijven, en de laatste de loodrechte afstand van het vlak tot de oorsprong.
           top_plane = [base_plane[0], base_plane[1], base_plane[2], base_plane[3] + @width - @offset]
           bottom_plane = [base_plane[0], base_plane[1], base_plane[2], base_plane[3] - @offset]
-          
+
           # Array needed to find intersections with planes of connecting elements
           @aPlanesHor = Array.new
           @aPlanesHor << bottom_plane
           @aPlanesHor << top_plane
         end
       end
-      
+
       # met deze functie kun je een hash ophalen met alle informatieve eigenschappen
       def properties_fixed
         h_Properties = Hash.new
@@ -741,10 +753,10 @@ module Brewsky
         h_Properties["guid"] = guid?
         return h_Properties
       end
-      
+
       # met deze functie kun je een hash ophalen met alle eigenschappen die rechtstreeks te wijzigen zijn
       def properties_editable
-        
+
         if @geometry.deleted?
           self_destruct
         else
@@ -755,7 +767,7 @@ module Brewsky
               a_types << type
             end
           end
-              
+
           a_layers = Array.new
           a_layers << @geometry.layer.name
           Sketchup.active_model.layers.each do |layer|
@@ -763,7 +775,7 @@ module Brewsky
               a_layers << layer.name
             end
           end
-        
+
           h_Properties = Hash.new
           h_Properties[:thickness] = @width
           h_Properties[:offset] = @offset
@@ -776,9 +788,9 @@ module Brewsky
           return h_Properties
         end
       end
-      
+
       def properties=(h_Properties)
-      
+
         @width = h_Properties["width"]
         @offset = h_Properties["offset"]
         length_new = h_Properties["length"]
@@ -789,12 +801,12 @@ module Brewsky
         #if height_new.nil?
         #  height_new = height?
         #end
-        
+
         unless length_new.nil? && height_new.nil?
-        
-        # check if length or height has changed
-        #if length_new != length? || height_new != height?
-        
+
+          # check if length or height has changed
+          #if length_new != length? || height_new != height?
+
           # scale_source to match new length
           scale_source(h_Properties["length"].to_l, h_Properties["height"].to_l)
         end
@@ -804,22 +816,22 @@ module Brewsky
         set_planes
         #update_geometry
       end
-      
+
       def set_type(value)
         if possible_types.include? value
           @element_type = value
         end
       end
-      
+
       # the element_type based on the initial source state
       def init_type
         @element_type = case source.normal.z
-           when 0 then "Wall"
-           when 1, -1 then "Floor"
-           else "Roof"
+        when 0 then "Wall"
+        when 1, -1 then "Floor"
+        else "Roof"
         end
-      end  
-      
+      end
+
       # write planar attributes to geometry object
       def set_attributes
         unless @geometry.nil?
@@ -831,17 +843,17 @@ module Brewsky
           @geometry.set_attribute "ifc", "offset", @offset.to_f.to_s #needs to be in planarelement class
           @geometry.set_attribute "ifc", "description", description?.to_s
           @geometry.set_attribute "ifc", "name", name?.to_s
-          
+
           # Try to write type as a ifc classification
           if Sketchup.version_number > 14000000
             if (Sketchup.is_pro?)
-            
+
               # get matching ifc type
               ifc_type = case @element_type
-                 when "Wall" then "IfcWall"
-                 when "Floor" then "IfcSlab"
-                 when "Roof" then "IfcSlab"
-                 else nil
+              when "Wall" then "IfcWall"
+              when "Floor" then "IfcSlab"
+              when "Roof" then "IfcSlab"
+              else nil
               end
               @geometry.definition.add_classification("IFC 2x3", ifc_type) unless ifc_type.nil?
             end
@@ -851,10 +863,10 @@ module Brewsky
           @source.set_attribute "ifc", "guid", guid?
         end
       end
+
       def ifc_export(exporter)
         #require 'bim-tools/lib/ifc_export/clsIfc.rb'
         if @element_type == "Wall"
-        
           # function to figure out if both values are almost equal
           def approx(val, other, relative_epsilon=Float::EPSILON, epsilon=Float::EPSILON)
             difference = other - val
@@ -863,17 +875,17 @@ module Brewsky
             return relative_error <= relative_epsilon
           end
           #square_area = height? * length?
-          
+
           # if the area of the source face equals length*height the face is a square
           # exept when wall openings are present!!!
           # and probably a wallstandardcase
-          
+
           #if approx(@source.area, square_area)
-          
+
           ######################
           #BEWARE OF NESTED COMPONENTS!
           edges = @source.outer_loop.edges
-          
+
           if edges.length == 4 and edges[0].line[1].parallel? edges[2].line[1] and edges[1].line[1].parallel? edges[3].line[1] and edges[0].line[1].perpendicular? edges[1].line[1] and approx(@source.normal.z, 0)
             IfcWallStandardCase.new(@project, exporter, self)
           else
