@@ -1,6 +1,6 @@
 #       clsBtProject.rb
 #       
-#       Copyright (C) 2012 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2016 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -58,7 +58,6 @@ module Brewsky
         set_organisation_name #@organisation_name = @default.get("organisation_name")
         set_organisation_description #@organisation_description = @default.get("organisation_description")
         
-        
         # set initial value for toggle button
         toggle_value = @model.get_attribute "bim-tools", "visible_geometry"
         
@@ -72,10 +71,10 @@ module Brewsky
           @visible_geometry = true
         end
         
-        @lib = ClsBtLibrary.new # would ClsBtEntities be a better name?
+        @lib = ClsBtLibrary.new #(?) would ClsBtEntities be a better name?
         
         @source_tracker = SourceTracker.new(self)
-        #id=#("id") # do or do not use "project" in method names?
+        #id=#("id") #(?) do or do not use "project" in method names?
         name=()#("name")
         description=()#("description")
         
@@ -174,29 +173,10 @@ module Brewsky
         guid = '';22.times{|i|guid<<'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$'[rand(64)]}
         return guid
       end
-  #    def name=(name=nil)
-  #    
-  #      # check if active_model already contains BtProject / IFC data and pass these to the project instance.
-  #      if name.nil?
-  #        @name = @model.get_attribute "ifc", "IfcProject_Name", nil
-  #      else
-  #        @name = name
-  #        @model.set_attribute "ifc", "IfcProject_Name", @name
-  #      end
-  #    end
-  #    def description=(description=nil)
-  #      
-  #      # check if active_model already contains BtProject / IFC data and pass these to the project instance.
-  #      if description.nil?
-  #        @description = @model.get_attribute "ifc", "IfcProject_Description", nil
-  #      else
-  #        @description = description
-  #        @model.set_attribute "ifc", "IfcProject_Description", @description
-  #      end
-  #    end
       
       # this method is used to update / set the value of several project-data-fields(such as name and description)
       def set_project_data(new_value, old_value, ifc_name, default_name)
+      
         # new_value = (optional) new name
         # old_value = current name
         # ifc_name = name of the IFC value field in the project´s ifc attributes
@@ -364,7 +344,7 @@ module Brewsky
             UI.stop_timer( @delay )
 
             # temporarily turn off observers to prevent creating geometry multiple times
-            Brewsky::BimTools::ObserverManager.toggle
+            Brewsky::BimTools::ObserverManager.suspend
             
             
             @model = Sketchup.active_model
@@ -433,7 +413,7 @@ module Brewsky
             @model.active_view.refresh # Refresh model
             
             # switch observers back on
-            Brewsky::BimTools::ObserverManager.toggle
+            Brewsky::BimTools::ObserverManager.resume
             
           }
         end

@@ -1,6 +1,6 @@
 #       object_properties.rb
 #       
-#       Copyright (C) 2015 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2016 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ module Brewsky
       project = Brewsky::BimTools.active_BtProject
       
       # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.suspend
       
       # start undo section
       model.start_operation("Update length", disable_ui=true) # Start of operation/undo section
@@ -55,7 +55,7 @@ module Brewsky
       model.active_view.refresh # Refresh model
       
       # switch observers back on
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
@@ -68,7 +68,7 @@ module Brewsky
       project = Brewsky::BimTools.active_BtProject
       
       # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.suspend
       
       # start undo section
       model.start_operation("Update height", disable_ui=true) # Start of operation/undo section
@@ -86,7 +86,7 @@ module Brewsky
       model.active_view.refresh # Refresh model
       
       # switch observers back on
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
@@ -99,7 +99,7 @@ module Brewsky
       project = Brewsky::BimTools.active_BtProject
       
       # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.suspend
       
       # start undo section
       model.start_operation("Update thickness", disable_ui=true) # Start of operation/undo section
@@ -117,7 +117,7 @@ module Brewsky
       model.active_view.refresh # Refresh model
       
       # switch observers back on
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
@@ -130,7 +130,7 @@ module Brewsky
       project = Brewsky::BimTools.active_BtProject
       
       # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.suspend
       
       # start undo section
       model.start_operation("Update offset", disable_ui=true) # Start of operation/undo section
@@ -148,7 +148,7 @@ module Brewsky
       model.active_view.refresh # Refresh model
       
       # switch observers back on
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
@@ -169,7 +169,7 @@ module Brewsky
       project = Brewsky::BimTools.active_BtProject
       
       # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.suspend
       
       # start undo section
       model.start_operation("Update name", disable_ui=true) # Start of operation/undo section
@@ -187,7 +187,7 @@ module Brewsky
       model.active_view.refresh # Refresh model
       
       # switch observers back on
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
@@ -200,7 +200,7 @@ module Brewsky
       project = Brewsky::BimTools.active_BtProject
       
       # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.suspend
       
       # start undo section
       model.start_operation("Update description", disable_ui=true) # Start of operation/undo section
@@ -218,7 +218,7 @@ module Brewsky
       model.active_view.refresh # Refresh model
       
       # switch observers back on
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
@@ -226,8 +226,10 @@ module Brewsky
     }
     volume = @section.add_textbox( :volume )
     volume.readonly = true
-    guid = @section.add_textbox( :guid )
-    guid.readonly = true
+    
+    # GUID does not match Sketchup IFC-exporter, so showing it would only be confusing
+    # guid = @section.add_textbox( :guid )
+    # guid.readonly = true
     
     # method that tells the window section to close/open based on the current selection
     # if the selection contains a bt_entity the section must be shown: returns true

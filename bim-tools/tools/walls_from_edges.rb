@@ -1,6 +1,6 @@
 #       walls_from_edges.rb
 #       
-#       Copyright (C) 2015 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2016 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -54,7 +54,6 @@ module Brewsky
     end
     
     # add to TOOLBAR
-    
     cmd = UI::Command.new('Create walls from edges') {
       #Menu.open_section( @section )
       selection = Sketchup.active_model.selection
@@ -67,6 +66,7 @@ module Brewsky
     BimTools.toolbar.add_item cmd
     
     def create_walls_from_edges(a_sources)
+      require "bim-tools/lib/clsPlanarElement.rb"
       @a_sources = a_sources
       @model = Sketchup.active_model
       @entities = @model.active_entities
@@ -75,7 +75,7 @@ module Brewsky
       
       # temporarily turn off observers to prevent creating geometry multiple times
       #t = Time.new
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.suspend
       
       # start undo section
       @model.start_operation("Create walls from edges", disable_ui=true) # Start of operation/undo section
@@ -99,20 +99,8 @@ module Brewsky
       end
       
       # create planar objects from wall faces
-      
-      # require planar class
-      require "bim-tools/lib/clsPlanarElement.rb"
-      
-      # first; create objects 
       a_faces.each do |source|
-  
-        ## create planar object if source is a SketchUp face
-        #if source.is_a?(Sketchup::Face)
-        #  # check if a BIM-Tools entity already exists for the source face
-        #  unless @project.library.source_to_bt_entity(@project, source)
-            @a_planars << ClsPlanarElement.new(@project, source, @width.to_l, @offset.to_l)
-        #  end
-        #end
+        @a_planars << ClsPlanarElement.new(@project, source, @width.to_l, @offset.to_l)
       end
       
       # clear the current selection to replace the selected source faces with geometry groups
@@ -129,16 +117,15 @@ module Brewsky
       @model.active_view.refresh # Refresh model
       
       # switch observers back on
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
       
       return @a_planars
-      
     end
     
-    # this part could be merged with the same part in planar_from_faces
+    #(!) this part can be merged with the same part in planars_from_faces.rb
     def planar_from_faces(project, a_faces)
     
       # require planar class

@@ -1,6 +1,6 @@
 #       bim-tools.rb
 #       
-#       Copyright (C) 2015 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2016 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -14,16 +14,6 @@
 #       
 #       You should have received a copy of the GNU General Public License
 #       along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-# roadmap:
-# columns
-
-# roadmap 0.14:
-# fix side-faces normal direction in openings
-# fix project properties(different way of reading/writing properties? one at a time instead of array?)
-# get rid of entitiesobservers
-# improve IFC export
-# speed up hidden edges
 
 require 'sketchup.rb'
 require 'extensions.rb'
@@ -43,7 +33,7 @@ module Brewsky
 
     # Create Extension
     bimtools = SketchupExtension.new "bim-tools", File.join( PATH, 'bim-tools_loader.rb' )
-    bimtools.version = '0.13.4'
+    bimtools.version = '0.14.0'
     bimtools.description = "Tools to create building parts and export these to IFC."
     Sketchup.register_extension bimtools, true
   end # module BimTools

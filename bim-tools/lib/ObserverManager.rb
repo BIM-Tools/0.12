@@ -1,6 +1,6 @@
 #       ObserverManager.rb
 #       
-#       Copyright (C) 2015 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2016 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -135,6 +135,20 @@ module Brewsky
         
         # what to do when component is placed? cut hole if possible.
         def onElementAdded(entities, entity)
+          if entity.is_a?(Sketchup::ComponentInstance)
+            unless entity.glued_to.nil?
+              source = entity.glued_to
+              
+              # run only if added entity cuts_opening
+              if entity.definition.behavior.cuts_opening?
+              
+                # check if entity is part of a building element
+                if bt_entity = BimTools.active_BtProject.library.source_to_bt_entity(BimTools.active_BtProject, source)
+                  bt_entity.update_geometry
+                end
+              end
+            end
+          end
 
           # if cutting-component?
           # if glued?
@@ -249,6 +263,20 @@ module Brewsky
         else
           self.load
         end
+      end
+      
+      #temporarily deactivate observers
+      def self.suspend
+        @app_observer.deactivate
+        @entities_observer.deactivate
+        @selection_observer.deactivate
+      end
+      
+      #reactivate suspended observers
+      def self.resume
+        @app_observer.activate
+        @entities_observer.activate
+        @selection_observer.activate
       end
     end # module ObserverManager
   end # module BimTools

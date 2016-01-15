@@ -1,6 +1,6 @@
 #       slabs_from_faces.rb
 #       
-#       Copyright (C) 2015 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2016 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ module Brewsky
       
       # temporarily turn off observers to prevent creating geometry multiple times
       #t = Time.new
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.suspend
       
       # start undo section
       model.start_operation("Create thick faces", disable_ui=true) # Start of operation/undo section
@@ -129,7 +129,7 @@ module Brewsky
       model.active_view.refresh # Refresh model
       
       # switch observers back on
-      Brewsky::BimTools::ObserverManager.toggle
+      Brewsky::BimTools::ObserverManager.resume
       
       # activate select tool
       model.select_tool(nil)

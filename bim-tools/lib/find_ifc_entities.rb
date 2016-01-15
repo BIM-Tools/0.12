@@ -1,6 +1,6 @@
 #       find_ifc_entities.rb
 #       
-#       Copyright (C) 2013 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2016 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -124,8 +124,8 @@ module Brewsky
                 planar.name= guid[1][1].get_attribute "ifc", "name"
                 planar.description= guid[1][1].get_attribute "ifc", "description"
                 planar.element_type= guid[1][1].get_attribute "ifc", "type"
-                output = planar.get_openings
-                output[1].erase!
+                #output = planar.get_openings
+                #output[1].erase!
               end
             end
           end

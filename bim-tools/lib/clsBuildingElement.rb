@@ -1,6 +1,6 @@
 #       clsBuildingElement.rb
 #       
-#       Copyright (C) 2012 Jan Brouwer <jan@brewsky.nl>
+#       Copyright (C) 2016 Jan Brouwer <jan@brewsky.nl>
 #       
 #       This program is free software: you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -39,10 +39,6 @@ module Brewsky
       
       # if source object is unrecoverable, self_destruct bt_entity
       def self_destruct
-        
-        # get connecting entities for updating geometry after deletion
-        edges = self.source.edges # works only for face!
-        
         @deleted = true
         unless @source.deleted?
           source.hidden= false
@@ -51,7 +47,14 @@ module Brewsky
           if @source.attribute_dictionaries
             @source.attribute_dictionaries.delete 'ifc'
           end
+        
+          # get connecting entities for updating geometry after deletion
+          edges = self.source.edges # works only for face!
+          
+          # update connecting bt_entities
+          find_linked_elements()
         end
+        
         unless @geometry.deleted?
           @geometry.erase!
         end
@@ -59,19 +62,7 @@ module Brewsky
         # remobe bt_entity from library
         @project.library.entities.delete(self)
         
-        # update connecting geometry after deletion
-        a_connecting_faces = Array.new # Array to hold al connecting faces
-        edges.each do |edge|
-          unless edge.deleted?
-            edge.faces.each do |face|
-              # add only bt-source-faces to array, bt-entities must not react to "normal" faces
-              if @project.library.source_to_bt_entity(@project, face)
-                a_connecting_faces << @project.library.source_to_bt_entity(@project, face) # shorter??????
-              end
-            end
-          end
-        end
-        @project.bt_entities_set_geometry(a_connecting_faces)
+        @project.bt_entities_set_geometry(@linked_elements)
       end
       
       # hide OR geometry OR source
@@ -146,9 +137,21 @@ module Brewsky
       
       # checks if the source entity is valid, and if not searches for new source entity
       def check_source
-        if @source.deleted?
-          @project.source_recovery
+        if @deleted == true
+          self_destruct
+          return false
+        else
+          if @source.deleted?
+          
+          # when to use source_recovery or find_source????????????????
+            #@project.source_recovery
+            if find_source == false
+              self_destruct
+              return false
+            end
+          end
         end
+        return true
       end
         
       # checks if the geometry group is valid, and if not creates new geometry
@@ -158,14 +161,19 @@ module Brewsky
         end
       end
       
+      # (?) search only in root entities collection?
       # if source object = renamed, find the new name
       def find_source
         entities = Sketchup.active_model.entities
-        entities.each do |entity|
-          guid = entity.get_attribute "ifc", "guid"
-          if guid == @guid
-            @source = entity
-            break
+        entities.each do |ent|
+          if ent.is_a? Sketchup::Face # (!) only faces?
+            guid = ent.get_attribute "ifc", "guid"
+            if guid == @guid
+              @source = ent
+              return @source
+            else
+              return false
+            end
           end
         end
       end
@@ -184,17 +192,6 @@ module Brewsky
     
       def set_guid
         @guid = @project.new_guid
-      end
-      def find_bt_entity_for_face(source)
-        bt_entity = nil
-        @project.library.entities.each do |ent|
-          if source == ent.source # als het vlak voorkomt in de bt-library
-            bt_entity = ent
-            break
-          end
-        end
-        bt_entity
-        return bt_entity
       end
     end
   end # module BimTools
