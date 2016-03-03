@@ -30,8 +30,28 @@ module Brewsky
     
     # Tool
     tool = Proc.new {
-      selection = Sketchup.active_model.selection
-      ClearProperties.new(BimTools.active_BtProject, selection)
+    
+      # Takes the current selection as input, deletes all BIM properties for these elements,
+      # and makes the source geometry visible and selected.
+    
+      entities = Sketchup.active_model.selection
+      model = Sketchup.active_model
+      project = BimTools.active_BtProject
+      sources = Array.new
+      
+      # start undo section
+      model.start_operation("Clear BIM-Tools properties", disable_ui=true)
+      
+      project.library.array_remove_non_bt_entities(project, entities).each do |entity|
+        sources << entity.source
+        entity.self_destruct
+      end
+        
+      model.commit_operation # End of operation/undo section
+      model.active_view.refresh # Refresh model
+      model.selection.add( sources )
+      model.select_tool(nil)
+      
     }
     
     # add to TOOLBAR
@@ -48,61 +68,10 @@ module Brewsky
       
       # tool
       tool.call
-      
     }
-
     
     # add to OBSERVERS
           
-
-    # Function that takes an array of SketchUp elements as input, deletes all BIM properties for these elements,
-    # and makes the source geometry visible and selected.
-    #   parameters: array of SketchUp elements
-    #   returns: array of SketchUp faces
-    
-    class ClearProperties
-      def initialize(project, entities)
-        @project = project
-        @model = Sketchup.active_model
-        
-        entities.each do |entity|
-          bt_entity = nil
-          if entity.is_a?(Sketchup::ComponentInstance)
-            bt_entity = @project.library.geometry_to_bt_entity(@project, entity)
-          elsif entity.is_a?(Sketchup::Face)
-            bt_entity = @project.library.source_to_bt_entity(@project, entity)
-          end
-          
-          if bt_entity
-				
-						# start undo section
-						@model.start_operation("Toggle source/geometry", disable_ui=true)
-        
-            bt_entity.self_destruct
-            #geometry = bt_entity.geometry
-            #source = bt_entity.source
-            #source.attribute_dictionaries.delete 'ifc'
-            #geometry.attribute_dictionaries.delete 'ifc'
-            #source.hidden= false    
-            #bt_entity.geometry= nil
-            
-            #@project.library.delete(bt_entity)
-            #geometry.erase!
-            
-            
-            # update connecting entities
-            
-						@model.commit_operation # End of operation/undo section
-						@model.active_view.refresh # Refresh model
-						@model.select_tool(nil)
-            
-            ### Select source faces of deleted entities ###
-            
-            
-          end
-        end
-      end
-    end
   end # module ClearProperties
  end # module BimTools
 end # module Brewsky
