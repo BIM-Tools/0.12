@@ -32,30 +32,37 @@ module Brewsky
     @section = Menu::add_section( self )
     length = @section.add_textbox( :length )
     length.on( :blur ) { |control, value|
-    
-      model = Sketchup.active_model
-      project = Brewsky::BimTools.active_BtProject
-      
-      # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.suspend
-      
-      # start undo section
-      model.start_operation("Update length", disable_ui=true) # Start of operation/undo section
-      
-      bt_entities = project.library.array_remove_non_bt_entities(project, Sketchup.active_model.selection)
-      
-      bt_entities.each do |bt_entity|
-        bt_entity.length= length.value.to_l
-        bt_entity.set_planes
+
+      # only update when value is a valid length
+      begin
+        value = length.value.to_l
+      rescue
+        # no rescue needed, changes are ignored
+      else
+        model = Sketchup.active_model
+        project = Brewsky::BimTools.active_BtProject
+        
+        # temporarily turn off observers to prevent recreating of geometry multiple times
+        Brewsky::BimTools::ObserverManager.suspend
+        
+        # start undo section
+        model.start_operation("Update length", disable_ui=true) # Start of operation/undo section
+        
+        bt_entities = project.library.array_remove_non_bt_entities(project, Sketchup.active_model.selection)
+        
+        bt_entities.each do |bt_entity|
+          bt_entity.length= value
+          bt_entity.set_planes
+        end
+        
+        project.bt_entities_set_geometry(bt_entities)
+        
+        model.commit_operation # End of operation/undo section
+        model.active_view.refresh # Refresh model
+        
+        # switch observers back on
+        Brewsky::BimTools::ObserverManager.resume
       end
-      
-      project.bt_entities_set_geometry(bt_entities)
-      
-      model.commit_operation # End of operation/undo section
-      model.active_view.refresh # Refresh model
-      
-      # switch observers back on
-      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
@@ -63,30 +70,37 @@ module Brewsky
     }
     height = @section.add_textbox( :height )
     height.on( :blur ) { |control, value|
-    
-      model = Sketchup.active_model
-      project = Brewsky::BimTools.active_BtProject
-      
-      # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.suspend
-      
-      # start undo section
-      model.start_operation("Update height", disable_ui=true) # Start of operation/undo section
-      
-      bt_entities = project.library.array_remove_non_bt_entities(project, Sketchup.active_model.selection)
-      
-      bt_entities.each do |bt_entity|
-        bt_entity.height= height.value.to_l
-        bt_entity.set_planes
+
+      # only update when value is a valid length
+      begin
+        value = height.value.to_l
+      rescue
+        # no rescue needed, changes are ignored
+      else
+        model = Sketchup.active_model
+        project = Brewsky::BimTools.active_BtProject
+        
+        # temporarily turn off observers to prevent recreating of geometry multiple times
+        Brewsky::BimTools::ObserverManager.suspend
+        
+        # start undo section
+        model.start_operation("Update height", disable_ui=true) # Start of operation/undo section
+        
+        bt_entities = project.library.array_remove_non_bt_entities(project, Sketchup.active_model.selection)
+        
+        bt_entities.each do |bt_entity|
+          bt_entity.height= value
+          bt_entity.set_planes
+        end
+        
+        project.bt_entities_set_geometry(bt_entities)
+        
+        model.commit_operation # End of operation/undo section
+        model.active_view.refresh # Refresh model
+        
+        # switch observers back on
+        Brewsky::BimTools::ObserverManager.resume
       end
-      
-      project.bt_entities_set_geometry(bt_entities)
-      
-      model.commit_operation # End of operation/undo section
-      model.active_view.refresh # Refresh model
-      
-      # switch observers back on
-      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
@@ -94,30 +108,37 @@ module Brewsky
     }
     thickness = @section.add_textbox( :thickness )
     thickness.on( :blur ) { |control, value|
-    
-      model = Sketchup.active_model
-      project = Brewsky::BimTools.active_BtProject
-      
-      # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.suspend
-      
-      # start undo section
-      model.start_operation("Update thickness", disable_ui=true) # Start of operation/undo section
-      
-      bt_entities = project.library.array_remove_non_bt_entities(project, Sketchup.active_model.selection)
-      
-      bt_entities.each do |bt_entity|
-        bt_entity.thickness= thickness.value.to_l
-        bt_entity.set_planes
+
+      # only update when value is a valid length
+      begin
+        value = thickness.value.to_l
+      rescue
+        # no rescue needed, changes are ignored
+      else
+        model = Sketchup.active_model
+        project = Brewsky::BimTools.active_BtProject
+        
+        # temporarily turn off observers to prevent recreating of geometry multiple times
+        Brewsky::BimTools::ObserverManager.suspend
+        
+        # start undo section
+        model.start_operation("Update thickness", disable_ui=true) # Start of operation/undo section
+        
+        bt_entities = project.library.array_remove_non_bt_entities(project, Sketchup.active_model.selection)
+        
+        bt_entities.each do |bt_entity|
+          bt_entity.thickness= value
+          bt_entity.set_planes
+        end
+        
+        project.bt_entities_set_geometry(bt_entities)
+        
+        model.commit_operation # End of operation/undo section
+        model.active_view.refresh # Refresh model
+        
+        # switch observers back on
+        Brewsky::BimTools::ObserverManager.resume
       end
-      
-      project.bt_entities_set_geometry(bt_entities)
-      
-      model.commit_operation # End of operation/undo section
-      model.active_view.refresh # Refresh model
-      
-      # switch observers back on
-      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
@@ -125,30 +146,37 @@ module Brewsky
     }
     offset = @section.add_textbox( :offset )
     offset.on( :blur ) { |control, value|
-    
-      model = Sketchup.active_model
-      project = Brewsky::BimTools.active_BtProject
-      
-      # temporarily turn off observers to prevent recreating of geometry multiple times
-      Brewsky::BimTools::ObserverManager.suspend
-      
-      # start undo section
-      model.start_operation("Update offset", disable_ui=true) # Start of operation/undo section
-      
-      bt_entities = project.library.array_remove_non_bt_entities(project, Sketchup.active_model.selection)
-      
-      bt_entities.each do |bt_entity|
-        bt_entity.offset= offset.value.to_l
-        bt_entity.set_planes
+
+      # only update when value is a valid length
+      begin
+        value = offset.value.to_l
+      rescue
+        # no rescue needed, changes are ignored
+      else
+        model = Sketchup.active_model
+        project = Brewsky::BimTools.active_BtProject
+        
+        # temporarily turn off observers to prevent recreating of geometry multiple times
+        Brewsky::BimTools::ObserverManager.suspend
+        
+        # start undo section
+        model.start_operation("Update offset", disable_ui=true) # Start of operation/undo section
+        
+        bt_entities = project.library.array_remove_non_bt_entities(project, Sketchup.active_model.selection)
+        
+        bt_entities.each do |bt_entity|
+          bt_entity.offset= value
+          bt_entity.set_planes
+        end
+        
+        project.bt_entities_set_geometry(bt_entities)
+        
+        model.commit_operation # End of operation/undo section
+        model.active_view.refresh # Refresh model
+        
+        # switch observers back on
+        Brewsky::BimTools::ObserverManager.resume
       end
-      
-      project.bt_entities_set_geometry(bt_entities)
-      
-      model.commit_operation # End of operation/undo section
-      model.active_view.refresh # Refresh model
-      
-      # switch observers back on
-      Brewsky::BimTools::ObserverManager.resume
       
       # update menu
       Menu.position_sections
