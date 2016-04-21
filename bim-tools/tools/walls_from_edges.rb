@@ -39,7 +39,19 @@ module Brewsky
     @section.add_textbox( :height, @height.to_s )
     @section.add_textbox( :width, @width.to_s )
     @section.add_textbox( :offset, @offset.to_s )
-    @section.add_button( 'Create walls from edges' ) {
+    @section.add_button( 'Create walls from edges' ) { |control|
+      width = control.parent[:width].value
+      if width.to_l
+        @width = width.to_l
+      end
+      offset = control.parent[:offset].value
+      if offset.to_l
+        @offset = offset.to_l
+      end
+      height = control.parent[:height].value
+      if height.to_l
+        @height = height.to_l
+      end
       selection = Sketchup.active_model.selection
       create_walls_from_edges(selection)
     }
@@ -74,7 +86,6 @@ module Brewsky
       @a_planars = Array.new
       
       # temporarily turn off observers to prevent creating geometry multiple times
-      #t = Time.new
       Brewsky::BimTools::ObserverManager.suspend
       
       # start undo section
@@ -122,40 +133,6 @@ module Brewsky
       # update menu
       Menu.position_sections
       
-      return @a_planars
-    end
-    
-    #(!) this part can be merged with the same part in planars_from_faces.rb
-    def planar_from_faces(project, a_faces)
-    
-      # require planar class
-      require "bim-tools/lib/clsPlanarElement.rb"
-      
-      # first; create objects 
-      a_faces.each do |source|
-  
-        # check if a BIM-Tools entity already exists for the source face
-        unless @project.library.source_to_bt_entity(@project, source)
-          planar = ClsPlanarElement.new(@project, source)
-          planar.width= @width
-          planar.offset= @offset
-          @a_planars << planar
-        end
-      end
-      
-      # clear the current selection to replace the selected source faces with geometry groups
-      @model.selection.clear
-  
-      # second; create geometry for the created objects, to make sure all connections are known.
-      @project.bt_entities_set_geometry(@a_planars)
-      @a_planars.each do |planar|
-  
-        # add the geometry group to the selection
-        @model.selection.add planar.geometry
-      end
-      
-      # activate select tool
-      Sketchup.send_action(21022)
       return @a_planars
     end
   end # module WallsFromEdges
