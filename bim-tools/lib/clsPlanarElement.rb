@@ -23,7 +23,7 @@ module Brewsky
     # building element subtype “planar” class
     # "Thick-face" linked to sketchup "face"
     class ClsPlanarElement < ClsBuildingElement
-      attr_reader :element_type, :openings, :linked_elements
+      attr_reader :element_type, :openings, :linked_elements, :material
       def initialize(project, face, width=nil, offset=nil, guid=nil) # profilecomponent=width, offset
 
         # load default values: This should be done once in a central place ?BtProject?
@@ -55,6 +55,7 @@ module Brewsky
         @guid = guid
         @length
         @height
+        @material
 
         if width.nil?
           @width = @default.get("planar_width").to_l
@@ -74,6 +75,7 @@ module Brewsky
         end
         set_attributes
         set_planes
+        set_material
       end
 
       # create the geometry for the planar element
@@ -319,6 +321,17 @@ module Brewsky
 
           # save all properties as attributes in the group
           set_attributes
+        end
+      end
+
+      # updates source AND geometry with given material
+      # if no material is given the source material is used
+      def set_material( material=nil )
+        if material.is_a?(Sketchup::Material)
+          @source.material = material
+          @material = material
+        else
+          @material = @source.material
         end
       end
 
@@ -599,6 +612,7 @@ module Brewsky
         set_geometry
         define_length
         define_height
+        set_material
       end
 
       def geometry=(geometry)
